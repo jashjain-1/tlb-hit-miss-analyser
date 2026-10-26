@@ -1,0 +1,18 @@
+# System & Editor Artifacts
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# Node & Package Artifacts
+node_modules/
+package-lock.json
+
+# IDE & Editor Configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Verification Scripts
+verify_*.js
