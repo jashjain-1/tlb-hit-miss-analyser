@@ -1,132 +1,63 @@
-# TLB Lab — TLB Hit / Miss Analyser & Interactive OS Simulator
+# TLB Hit / Miss Analyser & Interactive Simulator
 
-> An interactive educational instrument and simulator for Translation Lookaside Buffer (TLB) hits, misses, address translation mathematics, and Effective Access Time (EAT).  
-> Designed for **Semester 3 Computer Engineering Operating Systems Coursework**.
+> A clean, interactive educational simulator for Translation Lookaside Buffer (TLB) hit/miss analysis, address translation flow, and Effective Access Time (EAT).  
+> Developed for **Semester 3 Computer Engineering Operating Systems Coursework** at **Shah & Anchor Kutchhi Engineering College (SAKEC)**.
 
----
-
-## Overview
-
-In modern computer architectures, virtual memory provides memory protection and allows processes to execute without occupying contiguous physical address space. However, translating every virtual memory reference through page tables residing in main RAM introduces significant latency.
-
-The **Translation Lookaside Buffer (TLB)** is a fast, associative hardware cache inside the Memory Management Unit (MMU) that stores recently accessed Virtual Page Number (VPN) to Physical Frame Number (PFN) translations.
-
-**TLB Lab** visualises this process with mathematical rigor and editorial clarity:
-- Trace arbitrary decimal and `0x` hexadecimal virtual memory addresses.
-- Watch live address decomposition into Virtual Page Number (VPN) and Page Offset ($d$).
-- Follow step-by-step visual lookups across the TLB and Page Table.
-- Compare **FIFO** and **LRU** replacement policies under capacity pressure.
-- Calculate real-time **Effective Access Time (EAT)** and hit/miss ratios.
-- Review Viva examination questions and answers directly linked to simulation states.
+🌐 **Live Web Application:** [https://jashjain-1.github.io/tlb-hit-miss-analyser/](https://jashjain-1.github.io/tlb-hit-miss-analyser/)
 
 ---
 
-## Features
+## Key Features & Highlights
 
-1. **Deterministic Simulation Engine**
-   - Configurable TLB capacity: 2, 3, 4, or 8 entries.
-   - Configurable page size: 256 B (8-bit offset), 512 B (9-bit offset), or 1024 B (10-bit offset).
-   - Configurable replacement policies: **LRU** (Least Recently Used) and **FIFO** (First-In, First-Out).
-   - Configurable hardware latencies: TLB lookup time ($t$) and Main Memory access time ($m$).
-   - Strict address validation supporting decimal and hex (e.g. `12`, `260`, `0x0104`).
-
-2. **Step-by-Step Address Translation Visualisation**
-   - Breakdown cards: Virtual Address, VPN, Page Offset, PFN, Physical Address ($PA$).
-   - Interactive 16-bit bit-partitioning strip dynamically updating based on page size ($\log_2(\text{PageSize})$).
-   - Animated visual path: `Virtual Address` $\rightarrow$ `TLB Lookup` $\rightarrow$ `Page Table on Miss` $\rightarrow$ `Physical Address`.
-
-3. **Four Preset Demonstration Workloads**
-   - **Repeated Pages (Temporal Locality):** Demonstrates subsequent TLB hits on recently accessed pages.
-   - **Sequential Access (Spatial Locality):** Shows contiguous memory references falling on identical pages.
-   - **Capacity Pressure (Thrashing):** Exceeds TLB capacity to observe continuous evictions.
-   - **FIFO vs. LRU Divergence:** Accesses a page repeatedly, demonstrating how LRU protects hot pages while FIFO evicts them as the oldest resident.
-
-4. **Live Statistics & Metrics**
-   - Processed accesses, hit count, miss count.
-   - Dynamic hit ratio ($h$) and miss ratio ($1 - h$).
-   - Proportional visual hit/miss bar.
-   - Step-by-step Effective Access Time (EAT) latency derivation.
-
-5. **Integrated Execution Log**
-   - Access index, VA (dec/hex), VPN, Offset, Result (HIT / MISS), PFN, PA (dec/hex), and exact hardware action.
-   - Fully responsive with touch and keyboard accessibility.
-
-6. **Viva Preparation & OS Theory Guide**
-   - Clear architectural distinction between a **TLB Miss** (nanosecond hardware cache event) and a **Page Fault** (millisecond OS swap interrupt).
-   - Interactive viva accordion with 3 curated questions and model answers.
+- **Pure, Focused Simulator:** Zero extraneous bloat. Direct, single-click segmented controls for TLB size, replacement policy, page size, and workload presets.
+- **SLA-2 Report Benchmark:** Comes pre-loaded with the official college benchmark reference sequence:  
+  `1, 2, 3, 1, 2, 4, 1, 2, 5, 1` (with verified Page Table mappings: Page 1 &rarr; Frame 5, Page 2 &rarr; Frame 7, Page 3 &rarr; Frame 2, Page 4 &rarr; Frame 9, Page 5 &rarr; Frame 4).
+- **Dual Visualisation (Matching SLA-2 Report Figures 1–4):**
+  1. **Hit / Miss Count Bar Chart:** Clean comparative histogram of TLB hits vs misses.
+  2. **Running Hit Ratio Trajectory Graph:** Live SVG coordinate plot (0.0 to 1.0) showing how hit ratio evolves with every reference in the trace.
+- **Address Translation Flow:** Live animation showing Virtual Address decomposition (`VPN` &middot; `Offset`), TLB tag search, Page Table access on miss, and Physical Address generation ($PA = PFN \times \text{PageSize} + \text{Offset}$).
+- **Page-Table Accesses Counter:** Explicitly reports page-table accesses as a distinct cost separate from TLB lookups.
+- **Live Effective Access Time (EAT):** Real-time latency calculation using:
+  $$EAT = H \times (T + M) + (1 - H) \times (T + 2M)$$
+  *(Default: $T = 10\text{ ns}$, $M = 100\text{ ns}$)*.
 
 ---
 
-## Mathematical Foundations
+## Verified Benchmark Results (Table 3 from SLA-2 Report)
 
-### 1. Address Translation Decomposition
+For the benchmark reference string `1, 2, 3, 1, 2, 4, 1, 2, 5, 1` ($T = 10\text{ ns}, M = 100\text{ ns}$):
 
-Given Virtual Address $VA$ and Page Size $PageSize$:
-
-$$\text{VPN} = \left\lfloor \frac{VA}{PageSize} \right\rfloor$$
-
-$$\text{Offset } (d) = VA \bmod PageSize$$
-
-Physical Address ($PA$) resolved with Physical Frame Number ($PFN$):
-
-$$PA = (PFN \times PageSize) + Offset$$
-
-### 2. Effective Access Time (EAT)
-
-For a single-level page table where all referenced pages are resident in memory:
-
-$$EAT = h \cdot (t + m) + (1 - h) \cdot (t + 2m)$$
-
-Where:
-- $h$ = Measured TLB hit ratio ($\frac{\text{Hits}}{\text{Processed Accesses}}$)
-- $t$ = TLB lookup latency (default: 10 ns)
-- $m$ = Main memory access latency (default: 100 ns)
+| Policy | TLB Capacity | Hits | Misses | Hit Ratio ($H$) | Page-Table Accesses | EAT (ns) | Performance Gain vs No TLB (200 ns) |
+|---|---|---|---|---|---|---|---|
+| **FIFO** | 3 entries | 3 | 7 | 0.30 | 7 | 180 ns | 10% faster |
+| **FIFO** | 4 entries | 4 | 6 | 0.40 | 6 | 170 ns | 15% faster |
+| **LRU** | 3 entries | 5 | 5 | 0.50 | 5 | 160 ns | 20% faster |
+| **LRU** | 4 entries | 5 | 5 | 0.50 | 5 | 160 ns | 20% faster |
 
 ---
 
 ## How to Run Locally
 
-This application is built with **zero external dependencies**, frameworks, or build steps.
+Built entirely with **Vanilla HTML, CSS, and JavaScript** — no Node.js runtime, build tools, backend, or API keys required.
 
-1. Clone or download this repository:
+1. Clone this repository:
    ```bash
    git clone https://github.com/jashjain-1/tlb-hit-miss-analyser.git
    cd tlb-hit-miss-analyser
    ```
 
-2. Open `index.html` in any modern web browser:
-   - Double-click `index.html` in your file explorer, **or**
-   - In terminal (Windows):
-     ```powershell
-     Start-Process index.html
-     ```
-   - In terminal (macOS / Linux):
-     ```bash
-     open index.html   # macOS
-     xdg-open index.html # Linux
-     ```
-
-No local server, Node.js runtime, or API key is required.
+2. Open `index.html` directly in your browser:
+   - **Windows:** Double-click `index.html` or run `Start-Process index.html` in PowerShell.
+   - **macOS / Linux:** `open index.html` or `xdg-open index.html`.
 
 ---
 
-## Project Structure
+## Project Team & Academic Credits
 
-```
-.
-├── index.html       # Complete single-page application (HTML5, CSS3, Vanilla JS)
-├── README.md        # Documentation, theory, and operational instructions
-└── .gitignore       # Git ignore rules for system artifacts
-```
+**Shah & Anchor Kutchhi Engineering College (SAKEC)**  
+Department of Computer Engineering &middot; Operating Systems (Semester 3)  
+Academic Year: 2026–27
 
----
-
-## Project Credits
-
-**Operating Systems · Memory Management Lab Project**  
-Computer Engineering — Semester 3
-
-- **Jash Jain** — Roll 22 — PRN `125BTCM1106`
-- **Ridham Jain** — Roll 23 — PRN `125BTCM1159`
-
-*Shah & Anchor Kutchhi Engineering College (SAKEC)*
+- **Jash Jain** &mdash; SYCM1 &mdash; Roll No. 22 &mdash; PRN `125BTCM1106`
+- **Ridham Jain** &mdash; SYCM1 &mdash; Roll No. 23 &mdash; PRN `125BTCM1159`
+- **Under the Guidance of:** Prof. Vaishali Kosambkar

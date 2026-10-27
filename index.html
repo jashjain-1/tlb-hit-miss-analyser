@@ -3,64 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TLB Lab | Minimalist TLB Hit &amp; Miss Analyser</title>
-  <meta name="description" content="An interactive educational simulator and analyser for Translation Lookaside Buffer (TLB) hits, misses, address translation, and Effective Access Time (EAT). Designed for Computer Engineering Operating Systems coursework.">
+  <title>TLB Hit / Miss Analyser | SAKEC OS Lab</title>
   <style>
-    /* ==========================================================================
-       DESIGN SYSTEM & CSS CUSTOM PROPERTIES
-       Palette: Warm Alabaster, Pale Sage, Powder Blue, Soft Lavender, Pale Peach
-       Anti-AI-Slop Editorial Design: Restrained, High-Contrast, Calm Paper Feel
-       ========================================================================== */
     :root {
-      --bg-page: #FAF9F6;
-      --surface: #FFFFFF;
-      --surface-elevated: #FDFDFB;
-      --surface-subtle: #F4F4F0;
-      --border: #E5E6E1;
-      --border-dark: #D2D4CC;
+      --bg: #FAF9F6;
+      --card: #FFFFFF;
+      --soft: #F4F4F0;
+      --line: #E5E6E1;
+      --line2: #D2D4CC;
+      --ink: #26312D;
+      --muted: #68716D;
       
-      --text-main: #26312D;
-      --text-muted: #68716D;
-      --text-subtle: #8A938F;
-
-      /* Pastel Accent Tones */
-      --sage: #DFEBDD;
-      --sage-dark: #2D5A27;
-      --sage-border: #C1DAC0;
-      
-      --blue: #DFEAF5;
-      --blue-dark: #1F4B73;
-      --blue-border: #BDD4EA;
-      
-      --lavender: #EAE3F4;
-      --lavender-dark: #4A326E;
-      --lavender-border: #D5C8E7;
-      
-      --peach: #F4E2D8;
-      --peach-dark: #823E1E;
-      --peach-border: #E8C8B6;
-
-      /* Semantic Status Colors with AAA Contrast */
-      --hit-color: #245C29;
+      /* Semantic Status */
+      --hit: #245C29;
       --hit-bg: #EEF6ED;
-      --hit-border: #BBDCBA;
-      
-      --miss-color: #933224;
+      --hit-line: #BBDCBA;
+      --miss: #933224;
       --miss-bg: #FDF1EE;
-      --miss-border: #F2C7BF;
-
-      --active-glow: #26312D;
+      --miss-line: #F2C7BF;
       
-      /* Typography */
-      --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      /* Accent Tones */
+      --blue: #DFEAF5;
+      --blue-ink: #1F4B73;
+      --peach: #F4E2D8;
+      --peach-ink: #823E1E;
+      --lavender: #EAE3F4;
+      --lavender-ink: #4A326E;
       
-      --radius-sm: 4px;
-      --radius-md: 6px;
-      --radius-lg: 8px;
-      
-      --shadow-subtle: 0 1px 3px rgba(38, 49, 45, 0.04);
-      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+      --radius: 8px;
+      --trans: 180ms ease;
     }
 
     *, *::before, *::after {
@@ -69,2691 +41,1434 @@
       padding: 0;
     }
 
-    html {
-      scroll-behavior: smooth;
-      background-color: var(--bg-page);
-      color: var(--text-main);
-      font-family: var(--font-ui);
-      font-size: 15px;
-      line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
     body {
+      background: var(--bg);
+      color: var(--ink);
+      font: 14.5px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      -webkit-font-smoothing: antialiased;
     }
 
-    a {
-      color: var(--text-main);
-      text-decoration-thickness: 1px;
-      text-underline-offset: 3px;
-      transition: color var(--transition);
-    }
-    a:hover {
-      color: var(--blue-dark);
-    }
-
-    code, kbd, samp, pre {
-      font-family: var(--font-mono);
-      font-size: 0.9em;
-    }
-
-    /* Container constraints */
-    .container {
-      width: 100%;
-      max-width: 1220px;
+    .wrap {
+      max-width: 1140px;
       margin: 0 auto;
-      padding: 0 1.5rem;
+      padding: 0 20px;
+      width: 100%;
     }
 
-    /* ==========================================================================
-       HEADER & NAVIGATION
-       ========================================================================== */
-    header.site-header {
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      position: sticky;
-      top: 0;
-      z-index: 50;
+    /* HEADER */
+    header {
+      padding: 24px 0 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--card);
     }
-
-    .header-inner {
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    h1 {
+      font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+      letter-spacing: -0.02em;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      height: 56px;
+      gap: 10px;
     }
-
-    .brand {
-      display: flex;
-      align-items: baseline;
-      gap: 0.65rem;
-      text-decoration: none;
-    }
-
-    .brand-wordmark {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text-main);
-    }
-
-    .brand-tag {
+    .badge-univ {
       font-size: 0.72rem;
-      font-family: var(--font-mono);
-      padding: 2px 6px;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-family: var(--mono);
+      background: var(--soft);
+      border: 1px solid var(--line2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    header p {
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 0.9rem;
     }
 
-    .site-nav {
-      display: flex;
-      gap: 1.25rem;
+    /* CARD STYLING */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(38,49,45,0.03);
     }
-
-    .nav-link {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      text-decoration: none;
-      padding: 0.35rem 0.5rem;
-      border-radius: var(--radius-sm);
-      transition: all var(--transition);
-    }
-
-    .nav-link:hover {
-      color: var(--text-main);
-      background: var(--surface-subtle);
-    }
-
-    /* ==========================================================================
-       HERO & INTRODUCTION
-       ========================================================================== */
-    .intro-section {
-      padding: 2.75rem 0 2rem 0;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, var(--surface) 0%, var(--bg-page) 100%);
-    }
-
-    .intro-grid {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 2rem;
-      align-items: end;
-    }
-
-    .intro-title {
-      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      color: var(--text-main);
-      margin-bottom: 0.6rem;
-    }
-
-    .intro-subheading {
-      font-size: 1.05rem;
-      color: var(--text-muted);
-      max-width: 680px;
-      font-weight: 400;
-      line-height: 1.5;
-    }
-
-    .intro-meta {
-      font-family: var(--font-mono);
+    .card h2 {
       font-size: 0.75rem;
-      color: var(--text-subtle);
-      text-align: right;
-      line-height: 1.6;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    /* ==========================================================================
-       SIMULATOR LAYOUT
-       Two-column responsive grid: Configuration on Left, Tables on Right
-       ========================================================================== */
-    .simulator-section {
-      padding: 2rem 0 3.5rem 0;
-    }
-
-    .sim-grid {
+    /* LAYOUT GRIDS */
+    .grid {
       display: grid;
-      grid-template-columns: 460px 1fr;
-      gap: 1.75rem;
-      align-items: start;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
-
-    @media (max-width: 1040px) {
-      .sim-grid {
+    @media (max-width: 860px) {
+      .grid {
         grid-template-columns: 1fr;
       }
     }
 
-    /* Generic Card Surface */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.35rem;
-      box-shadow: var(--shadow-subtle);
-      margin-bottom: 1.5rem;
-    }
-
-    .card:last-child {
-      margin-bottom: 0;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.15rem;
-      padding-bottom: 0.65rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      letter-spacing: -0.01em;
-    }
-
-    .card-badge {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      font-weight: 500;
-      padding: 2px 7px;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
-    }
-
-    /* Form Fields */
-    .form-group {
-      margin-bottom: 1.1rem;
-    }
-
-    .form-group:last-child {
-      margin-bottom: 0;
-    }
-
-    .form-row {
+    /* TOGGLE GROUPS */
+    .opts {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.85rem;
-      margin-bottom: 1.1rem;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px 16px;
     }
-
-    label {
+    .opt label {
       display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--ink);
+    }
+    .seg {
+      display: flex;
+      border: 1px solid var(--line2);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--card);
+    }
+    .seg button {
+      flex: 1;
+      padding: 7px 6px;
+      border: 0;
+      border-right: 1px solid var(--line2);
+      background: var(--card);
+      color: var(--ink);
+      font: inherit;
       font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--text-main);
-      margin-bottom: 0.35rem;
-    }
-
-    .label-hint {
-      font-weight: 400;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-left: 0.35rem;
-    }
-
-    select, input[type="text"], input[type="number"], textarea {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border-dark);
-      border-radius: var(--radius-sm);
-      padding: 0.55rem 0.75rem;
-      font-family: var(--font-mono);
-      font-size: 0.88rem;
-      color: var(--text-main);
-      transition: border-color var(--transition), box-shadow var(--transition);
-    }
-
-    select:focus, input:focus, textarea:focus {
-      outline: none;
-      border-color: var(--text-main);
-      box-shadow: 0 0 0 2px rgba(38, 49, 45, 0.1);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 72px;
-      line-height: 1.45;
-    }
-
-    .input-error {
-      display: none;
-      font-size: 0.78rem;
-      color: var(--miss-color);
-      margin-top: 0.4rem;
-      font-family: var(--font-mono);
-      padding: 4px 8px;
-      background: var(--miss-bg);
-      border-left: 3px solid var(--miss-color);
-      border-radius: 2px;
-    }
-
-    .policy-note {
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      margin-top: 0.35rem;
-      line-height: 1.4;
-    }
-
-    /* Preset Buttons */
-    .presets-container {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px dashed var(--border);
-    }
-
-    .presets-label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .preset-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
-    }
-
-    .btn-preset {
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0.45rem 0.6rem;
-      text-align: left;
       cursor: pointer;
-      font-size: 0.78rem;
-      color: var(--text-main);
-      font-family: var(--font-ui);
-      font-weight: 500;
-      transition: all var(--transition);
+      transition: background var(--trans), color var(--trans);
+      user-select: none;
+      white-space: nowrap;
+    }
+    .seg button:last-child {
+      border-right: 0;
+    }
+    .seg button:hover {
+      background: var(--soft);
+    }
+    .seg button.on {
+      background: var(--ink);
+      color: #FFFFFF;
+      font-weight: 600;
     }
 
-    .btn-preset:hover {
-      background: var(--surface);
-      border-color: var(--text-muted);
-      transform: translateY(-1px);
+    /* PRESETS */
+    .presets {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 8px;
     }
-
-    .btn-preset span {
+    .presets button {
+      text-align: left;
+      padding: 9px 12px;
+      border: 1px solid var(--line2);
+      border-radius: 6px;
+      background: var(--card);
+      font: inherit;
+      font-size: 0.84rem;
+      cursor: pointer;
+      transition: all var(--trans);
+    }
+    .presets button small {
       display: block;
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      font-weight: 400;
+      color: var(--muted);
+      font-size: 0.72rem;
       margin-top: 2px;
     }
-
-    /* Control Bar */
-    .controls-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 1.35rem;
-      padding-top: 1.15rem;
-      border-top: 1px solid var(--border);
-      align-items: center;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.45rem;
-      padding: 0.55rem 0.95rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all var(--transition);
-      user-select: none;
-    }
-
-    .btn svg {
-      width: 14px;
-      height: 14px;
-      stroke-width: 2;
-    }
-
-    .btn-primary {
-      background: var(--text-main);
-      color: #FFFFFF;
-      border-color: var(--text-main);
-    }
-    .btn-primary:hover:not(:disabled) {
-      background: #3B4B45;
+    .presets button:hover {
+      border-color: var(--ink);
       transform: translateY(-1px);
     }
-
-    .btn-secondary {
-      background: var(--surface);
-      color: var(--text-main);
-      border-color: var(--border-dark);
+    .presets button.on {
+      background: var(--blue);
+      border-color: var(--blue-ink);
+      color: var(--blue-ink);
+      font-weight: 600;
     }
-    .btn-secondary:hover:not(:disabled) {
-      background: var(--surface-subtle);
-      border-color: var(--text-main);
+    .presets button.on small {
+      color: var(--blue-ink);
     }
 
+    /* CUSTOM INPUT */
+    .custom-input-box {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .custom-input-box input {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      border: 1px solid var(--line2);
+      border-radius: 6px;
+      background: #FFFFFF;
+      color: var(--ink);
+    }
+    .custom-input-box input:focus {
+      outline: none;
+      border-color: var(--ink);
+      box-shadow: 0 0 0 2px rgba(38,49,45,0.08);
+    }
+
+    /* RUN CONTROLS */
+    .run-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      align-items: center;
+    }
+    .btn {
+      padding: 8px 18px;
+      border-radius: 6px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #FFFFFF;
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, background var(--trans);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: #3B4B45;
+    }
+    .btn.alt {
+      background: var(--card);
+      color: var(--ink);
+      border-color: var(--line2);
+    }
+    .btn.alt:hover:not(:disabled) {
+      background: var(--soft);
+      border-color: var(--ink);
+    }
     .btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
-      transform: none !important;
+      transform: none;
     }
-
-    .speed-control {
+    .run-bar .seg {
       margin-left: auto;
+      min-width: 160px;
+    }
+
+    /* TRACE CHIPS */
+    .chips {
       display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-    }
-
-    .speed-control select {
-      width: auto;
-      padding: 0.25rem 0.45rem;
-      font-size: 0.75rem;
-    }
-
-    /* ==========================================================================
-       ADDRESS TRANSLATION VISUALIZATION CARD
-       ========================================================================== */
-    .visualizer-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.35rem;
-      box-shadow: var(--shadow-subtle);
-      margin-bottom: 1.5rem;
-    }
-
-    .address-breakdown {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.75rem;
-      margin-bottom: 1.25rem;
-    }
-
-    @media (max-width: 700px) {
-      .address-breakdown {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .breakdown-box {
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0.65rem 0.75rem;
-      transition: all var(--transition);
-    }
-
-    .breakdown-box.active {
-      border-color: var(--text-main);
-      background: #FFFFFF;
-      box-shadow: 0 0 0 1px var(--text-main);
-    }
-
-    .breakdown-box .box-lbl {
-      font-size: 0.68rem;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 0.25rem;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .breakdown-box .box-val {
-      font-size: 1.05rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      color: var(--text-main);
-      line-height: 1.2;
-    }
-
-    .breakdown-box .box-sub {
-      font-size: 0.7rem;
-      font-family: var(--font-mono);
-      color: var(--text-subtle);
-      margin-top: 0.2rem;
-    }
-
-    /* Bit partitioning visual strip */
-    .bit-strip-container {
-      margin-bottom: 1.25rem;
-      padding: 0.85rem;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-    }
-
-    .bit-strip-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.72rem;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-      margin-bottom: 0.45rem;
-    }
-
-    .bit-strip {
-      display: flex;
-      height: 28px;
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      border: 1px solid var(--border-dark);
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .bit-segment-vpn {
-      background: var(--blue);
-      color: var(--blue-dark);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 0.5rem;
-      border-right: 1px solid var(--blue-border);
-      transition: width var(--transition);
-    }
-
-    .bit-segment-offset {
-      background: var(--peach);
-      color: var(--peach-dark);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 0.5rem;
-      transition: width var(--transition);
-    }
-
-    .formula-math {
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 0.45rem;
-      display: flex;
-      gap: 1.25rem;
       flex-wrap: wrap;
+      gap: 8px;
     }
-
-    .formula-math span {
-      background: var(--surface);
-      padding: 2px 6px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-    }
-
-    /* Flow diagram: Virtual Address -> TLB -> Page Table -> Physical Address */
-    .flow-diagram-wrapper {
-      position: relative;
-      padding: 1.15rem 0.5rem 0.5rem 0.5rem;
-      border-top: 1px dashed var(--border);
-    }
-
-    .flow-grid {
-      display: grid;
-      grid-template-columns: 1fr auto 1.35fr auto 1fr;
-      align-items: center;
-      gap: 0.5rem;
+    .chip {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      padding: 5px 10px;
+      border: 1px solid var(--line2);
+      border-radius: 6px;
+      background: var(--soft);
+      transition: all 0.25s;
+      min-width: 34px;
       text-align: center;
     }
+    .chip.hit {
+      background: var(--hit-bg);
+      border-color: var(--hit-line);
+      color: var(--hit);
+      font-weight: 700;
+    }
+    .chip.miss {
+      background: var(--miss-bg);
+      border-color: var(--miss-line);
+      color: var(--miss);
+      font-weight: 700;
+    }
+    .chip.now {
+      animation: pop 0.35s ease;
+      box-shadow: 0 0 0 2px var(--ink);
+      border-color: var(--ink);
+    }
+    @keyframes pop {
+      0% { transform: scale(0.9); }
+      50% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
 
-    @media (max-width: 650px) {
-      .flow-grid {
+    /* TRANSLATION FLOW */
+    .flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1.25fr auto 1fr;
+      gap: 8px;
+      align-items: center;
+      text-align: center;
+    }
+    @media (max-width: 580px) {
+      .flow {
         grid-template-columns: 1fr;
-        gap: 0.75rem;
       }
-      .flow-arrow {
+      .arrow {
         transform: rotate(90deg);
       }
     }
-
-    .flow-node {
-      padding: 0.75rem 0.5rem;
-      border: 1px solid var(--border-dark);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      transition: all var(--transition);
+    .node {
+      border: 1px solid var(--line2);
+      border-radius: 6px;
+      padding: 10px 6px;
+      background: var(--card);
+      transition: all 0.3s;
     }
-
-    .flow-node.active-hit {
-      border-color: var(--hit-color);
-      background: var(--hit-bg);
-      color: var(--hit-color);
-      box-shadow: 0 0 0 1px var(--hit-color);
-    }
-
-    .flow-node.active-miss {
-      border-color: var(--miss-color);
-      background: var(--miss-bg);
-      color: var(--miss-color);
-      box-shadow: 0 0 0 1px var(--miss-color);
-    }
-
-    .flow-node .node-title {
+    .node b {
+      display: block;
       font-size: 0.82rem;
-      font-weight: 600;
       margin-bottom: 2px;
     }
-
-    .flow-node .node-desc {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
+    .node span {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .node.lit {
+      animation: pop 0.35s ease;
+    }
+    .node.hit {
+      background: var(--hit-bg);
+      border-color: var(--hit);
+      color: var(--hit);
+    }
+    .node.miss {
+      background: var(--miss-bg);
+      border-color: var(--miss);
+      color: var(--miss);
+    }
+    .node.hit span, .node.miss span {
+      color: inherit;
+    }
+    .arrow {
+      color: var(--muted);
+      font-size: 1.1rem;
     }
 
-    .flow-arrow {
-      color: var(--text-subtle);
-      font-size: 1.1rem;
+    /* BIT STRIP */
+    .bits {
+      display: flex;
+      height: 28px;
+      margin: 12px 0 4px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--line2);
+      font: 600 0.74rem var(--mono);
+    }
+    .bits div {
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: width 0.35s;
+    }
+    .bits .v {
+      background: var(--blue);
+      color: var(--blue-ink);
+    }
+    .bits .o {
+      background: var(--peach);
+      color: var(--peach-ink);
     }
 
-    .flow-status-banner {
-      margin-top: 1rem;
-      padding: 0.65rem 0.85rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      font-family: var(--font-mono);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border: 1px solid var(--border);
-      background: var(--surface-subtle);
-      transition: all var(--transition);
+    .banner {
+      margin-top: 10px;
+      padding: 9px 12px;
+      border-radius: 6px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      font-size: 0.84rem;
+      transition: all 0.3s;
+      font-family: var(--mono);
     }
-
-    .flow-status-banner.is-hit {
+    .banner.hit {
       background: var(--hit-bg);
-      border-color: var(--hit-border);
-      color: var(--hit-color);
+      border-color: var(--hit-line);
+      color: var(--hit);
     }
-
-    .flow-status-banner.is-miss {
+    .banner.miss {
       background: var(--miss-bg);
-      border-color: var(--miss-border);
-      color: var(--miss-color);
+      border-color: var(--miss-line);
+      color: var(--miss);
     }
 
-    /* ==========================================================================
-       RIGHT COLUMN: STATS, TLB TABLE, PAGE TABLE
-       ========================================================================== */
-    /* Live Statistics Cards */
-    .stats-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.35rem;
-      box-shadow: var(--shadow-subtle);
-      margin-bottom: 1.5rem;
-    }
-
-    .stats-metrics-grid {
+    /* OUTPUT / STATISTICS */
+    .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0.75rem;
-      margin-bottom: 1.15rem;
+      gap: 8px;
+      margin-bottom: 10px;
     }
-
-    .metric-cell {
-      padding: 0.6rem 0.75rem;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+    .stat {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 10px;
     }
-
-    .metric-cell .metric-lbl {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
+    .stat small {
+      display: block;
+      font-size: 0.68rem;
       text-transform: uppercase;
-      margin-bottom: 0.2rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
     }
-
-    .metric-cell .metric-val {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-main);
-      font-family: var(--font-mono);
+    .stat strong {
+      font: 700 1.25rem var(--mono);
       line-height: 1.2;
     }
-
-    .metric-cell .metric-sub {
-      font-size: 0.72rem;
-      color: var(--text-subtle);
-      margin-top: 0.2rem;
-    }
-
-    /* Proportion Bar */
-    .proportion-wrapper {
-      margin-bottom: 1.15rem;
-    }
-
-    .proportion-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      font-family: var(--font-mono);
-      margin-bottom: 0.35rem;
-    }
-
-    .prop-bar {
-      height: 12px;
-      border-radius: 6px;
-      background: var(--border);
-      display: flex;
+    .bar {
+      height: 8px;
+      background: var(--line);
+      border-radius: 4px;
       overflow: hidden;
-    }
-
-    .prop-fill-hit {
-      background: var(--hit-color);
-      height: 100%;
-      transition: width var(--transition);
-    }
-
-    .prop-fill-miss {
-      background: var(--miss-color);
-      height: 100%;
-      transition: width var(--transition);
-    }
-
-    /* EAT Calculation Callout */
-    .eat-box {
-      padding: 0.75rem 0.85rem;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-    }
-
-    .eat-header {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 0.3rem;
+      margin-bottom: 8px;
     }
-
-    .eat-title {
-      font-weight: 600;
-      font-size: 0.82rem;
-      color: var(--text-main);
+    .bar i {
+      display: block;
+      height: 100%;
+      transition: width 0.4s;
     }
-
-    .eat-val-large {
-      font-family: var(--font-mono);
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--text-main);
+    .bar .h {
+      background: var(--hit);
     }
-
-    .eat-equation {
-      font-family: var(--font-mono);
-      font-size: 0.73rem;
-      color: var(--text-muted);
+    .bar .m {
+      background: var(--miss);
+    }
+    .eat-box {
+      font-size: 0.76rem;
+      font-family: var(--mono);
+      color: var(--muted);
       line-height: 1.45;
+      background: var(--soft);
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
     }
 
-    /* ==========================================================================
-       TLB & PAGE TABLE PANELS
-       ========================================================================== */
-    .tables-row {
+    /* TABLES */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font: 0.8rem var(--mono);
+    }
+    th {
+      text-align: left;
+      padding: 7px 8px;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--soft);
+      border-bottom: 1px solid var(--line);
+    }
+    td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    tr.flash-hit td {
+      background: var(--hit-bg);
+      color: var(--hit);
+      font-weight: 700;
+    }
+    tr.flash-new td {
+      background: var(--blue);
+      color: var(--blue-ink);
+      font-weight: 700;
+    }
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+    .tag.hit {
+      background: var(--hit-bg);
+      color: var(--hit);
+      border: 1px solid var(--hit-line);
+    }
+    .tag.miss {
+      background: var(--miss-bg);
+      color: var(--miss);
+      border: 1px solid var(--miss-line);
+    }
+    .logbox {
+      max-height: 220px;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+      padding: 14px 0;
+      text-align: center;
+      font-family: inherit;
+    }
+
+    /* VISUALIZATION CHARTS (SLA-2 Fig 1-4) */
+    .chart-grid {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 1.25rem;
-      margin-bottom: 1.5rem;
+      grid-template-columns: 240px 1fr;
+      gap: 16px;
+      align-items: center;
     }
-
-    @media (max-width: 800px) {
-      .tables-row {
+    @media (max-width: 680px) {
+      .chart-grid {
         grid-template-columns: 1fr;
       }
     }
-
-    .data-table-container {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-subtle);
-      overflow: hidden;
+    .chart-panel {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 12px;
+      height: 180px;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
-
-    .table-top-bar {
-      padding: 0.75rem 1rem;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .table-top-title {
-      font-size: 0.85rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    table.sim-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-      text-align: left;
-    }
-
-    table.sim-table th {
-      background: var(--surface-subtle);
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
+    .chart-title {
+      font-size: 0.72rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
     }
-
-    table.sim-table td {
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      transition: background-color var(--transition);
-    }
-
-    table.sim-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    /* Highlight states for TLB & Page table rows */
-    tr.tlb-hit-row td {
-      background-color: var(--hit-bg) !important;
-      color: var(--hit-color) !important;
-      font-weight: 600;
-    }
-
-    tr.tlb-insert-row td {
-      background-color: var(--blue) !important;
-      color: var(--blue-dark) !important;
-      font-weight: 600;
-    }
-
-    tr.tlb-evict-row td {
-      background-color: var(--peach) !important;
-      color: var(--peach-dark) !important;
-    }
-
-    tr.page-table-active td {
-      background-color: var(--lavender) !important;
-      color: var(--lavender-dark) !important;
-      font-weight: 700;
-    }
-
-    .table-empty {
-      text-align: center;
-      padding: 1.75rem 1rem !important;
-      color: var(--text-subtle) !important;
-      font-family: var(--font-ui) !important;
-      font-style: italic;
-    }
-
-    /* Badges */
-    .badge {
-      display: inline-block;
-      font-size: 0.68rem;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: var(--radius-sm);
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .badge-hit {
-      background: var(--hit-bg);
-      color: var(--hit-color);
-      border: 1px solid var(--hit-border);
-    }
-
-    .badge-miss {
-      background: var(--miss-bg);
-      color: var(--miss-color);
-      border: 1px solid var(--miss-border);
-    }
-
-    .badge-tag {
-      background: var(--surface-subtle);
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-    }
-
-    /* ==========================================================================
-       EXECUTION LOG (FULL WIDTH)
-       ========================================================================== */
-    .log-section {
-      margin-top: 1.5rem;
-    }
-
-    .log-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-subtle);
-      overflow: hidden;
-    }
-
-    .log-header {
-      padding: 0.85rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .log-scroll-area {
-      max-height: 280px;
-      overflow-y: auto;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    table.log-table {
+    .chart-svg {
       width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-      white-space: nowrap;
+      height: 100%;
+      overflow: visible;
     }
 
-    table.log-table th {
-      position: sticky;
-      top: 0;
-      background: var(--surface-subtle);
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      padding: 0.6rem 0.85rem;
-      border-bottom: 1px solid var(--border);
-      z-index: 10;
-    }
-
-    table.log-table td {
-      padding: 0.55rem 0.85rem;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--font-mono);
-      color: var(--text-main);
-    }
-
-    table.log-table tr.active-log-row td {
-      background: #FDFCEF;
-      font-weight: 600;
-      border-left: 3px solid var(--text-main);
-    }
-
-    /* ==========================================================================
-       LEARNING & VIVA SECTION
-       ========================================================================== */
-    .learning-section {
-      padding: 3.5rem 0 4rem 0;
-      border-top: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    .section-eyebrow {
-      font-size: 0.75rem;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin-bottom: 0.4rem;
-    }
-
-    .section-title {
-      font-size: 1.75rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text-main);
-      margin-bottom: 2rem;
-    }
-
-    .theory-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .theory-card {
-      background: var(--bg-page);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.4rem;
-      transition: border-color var(--transition);
-    }
-
-    .theory-card:hover {
-      border-color: var(--border-dark);
-    }
-
-    .theory-card h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 0.65rem;
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-    }
-
-    .theory-card p {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 0.75rem;
-    }
-
-    .theory-card p:last-child {
-      margin-bottom: 0;
-    }
-
-    .theory-highlight {
-      background: var(--surface);
-      border-left: 3px solid var(--text-main);
-      padding: 0.65rem 0.85rem;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-size: 0.82rem;
-      color: var(--text-main);
-      margin-top: 0.75rem;
-    }
-
-    /* Comparison Table for Miss vs Fault */
-    .compare-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 0.85rem;
-      font-size: 0.8rem;
-    }
-
-    .compare-table th {
-      background: var(--surface);
-      padding: 0.5rem 0.65rem;
-      border: 1px solid var(--border);
-      text-align: left;
-      font-weight: 600;
-      font-size: 0.75rem;
-    }
-
-    .compare-table td {
-      padding: 0.5rem 0.65rem;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-    }
-
-    /* Quick Viva Check Accordion */
-    .viva-container {
-      margin-top: 2rem;
-      background: var(--bg-page);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.5rem;
-    }
-
-    .viva-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 0.35rem;
-      color: var(--text-main);
-    }
-
-    .viva-sub {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 1.25rem;
-    }
-
-    .viva-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
-
-    .viva-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      transition: border-color var(--transition);
-    }
-
-    .viva-question {
-      padding: 0.85rem 1rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-main);
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      user-select: none;
-    }
-
-    .viva-question:hover {
-      background: var(--surface-subtle);
-    }
-
-    .viva-icon {
-      font-family: var(--font-mono);
-      font-size: 1rem;
-      color: var(--text-muted);
-      transition: transform var(--transition);
-    }
-
-    .viva-answer {
-      display: none;
-      padding: 0.95rem 1rem 1.15rem 1rem;
-      border-top: 1px solid var(--border);
-      font-size: 0.86rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      background: var(--surface-subtle);
-    }
-
-    .viva-answer.open {
-      display: block;
-    }
-
-    .viva-item.is-open .viva-icon {
-      transform: rotate(45deg);
-    }
-
-    /* ==========================================================================
-       FOOTER & ACADEMIC CREDITS
-       ========================================================================== */
-    footer.site-footer {
-      border-top: 1px solid var(--border);
-      background: var(--surface);
-      padding: 2.5rem 0 3rem 0;
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--line);
+      background: var(--card);
+      padding: 22px 0 28px;
       margin-top: auto;
+      font-size: 0.8rem;
+      color: var(--muted);
     }
-
     .footer-grid {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
       flex-wrap: wrap;
-      gap: 2rem;
+      gap: 16px;
     }
-
-    .footer-main {
-      max-width: 500px;
-    }
-
-    .footer-label {
-      font-size: 0.72rem;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin-bottom: 0.45rem;
-    }
-
-    .credits-box {
-      margin-top: 0.65rem;
-      padding: 0.75rem 0.95rem;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
+    .credits-block {
+      font-family: var(--mono);
       line-height: 1.6;
-      color: var(--text-main);
     }
-
-    .credits-name {
-      font-weight: 600;
-    }
-
-    .footer-links-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-    }
-
-    .footer-links-title {
-      font-size: 0.75rem;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      margin-bottom: 0.25rem;
-    }
-
-    .footer-link {
-      font-size: 0.84rem;
-      color: var(--text-muted);
-      text-decoration: none;
-    }
-
-    .footer-link:hover {
-      color: var(--text-main);
-      text-decoration: underline;
-    }
-
-    /* Accessibility focus styling */
-    :focus-visible {
-      outline: 2px solid var(--text-main);
-      outline-offset: 2px;
+    .credits-block b {
+      color: var(--ink);
     }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
+        animation: none !important;
+        transition: none !important;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- SITE HEADER -->
-  <header class="site-header" role="banner">
-    <div class="container header-inner">
-      <a href="#" class="brand" aria-label="TLB Lab Home">
-        <span class="brand-wordmark">TLB Lab</span>
-        <span class="brand-tag">Sem 3 OS</span>
-      </a>
-      <nav class="site-nav" role="navigation" aria-label="Main Navigation">
-        <a href="#simulator" class="nav-link">Simulator</a>
-        <a href="#execution-log" class="nav-link">Execution Log</a>
-        <a href="#theory" class="nav-link">Theory &amp; Viva</a>
-      </nav>
+  <!-- HEADER -->
+  <header>
+    <div class="wrap">
+      <div class="header-row">
+        <div>
+          <h1>
+            TLB Hit / Miss Analyser
+            <span class="badge-univ">SAKEC &middot; OS Lab</span>
+          </h1>
+          <p>Interactive hardware cache simulation for Virtual Memory paging, address translation, and Effective Access Time (EAT).</p>
+        </div>
+        <div style="font-family:var(--mono); font-size:0.75rem; color:var(--muted); text-align:right;">
+          <div>Sem 3 &middot; Computer Engineering</div>
+          <div>Academic Year 2026–27</div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <main id="main-content">
-    <!-- INTRODUCTION SECTION -->
-    <section class="intro-section" aria-labelledby="intro-heading">
-      <div class="container">
-        <div class="intro-grid">
-          <div>
-            <h1 id="intro-heading" class="intro-title">TLB Hit / Miss Analyser</h1>
-            <p class="intro-subheading">
-              Trace virtual addresses. Watch translations happen in real time. Understand the exact latency cost of every translation lookaside buffer lookup.
-            </p>
+  <main class="wrap" style="padding-top: 18px; padding-bottom: 24px;">
+
+    <!-- SECTION 1: ARCHITECTURE & WORKLOAD CONFIGURATION -->
+    <section class="card">
+      <h2>1 &middot; Architecture Setup</h2>
+      <div class="opts">
+        <div class="opt">
+          <label>TLB Size (entries)</label>
+          <div class="seg" id="g-cap"></div>
+        </div>
+        <div class="opt">
+          <label>Replacement Policy</label>
+          <div class="seg" id="g-policy"></div>
+        </div>
+        <div class="opt">
+          <label>Page Size</label>
+          <div class="seg" id="g-page"></div>
+        </div>
+        <div class="opt">
+          <label>Hardware Latency</label>
+          <div class="seg" id="g-timing"></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top: 16px;">2 &middot; Workload Reference Sequence</h2>
+      <div class="presets" id="g-work"></div>
+
+      <!-- Custom Reference Input -->
+      <div class="custom-input-box">
+        <input type="text" id="custom-trace-input" placeholder="Or enter custom page numbers or addresses (e.g. 1, 2, 3, 1, 2, 4, 1, 2, 5, 1 or 3000, 1024)" spellcheck="false">
+        <button type="button" class="btn alt" id="btn-apply-custom" style="padding: 8px 14px;">Apply</button>
+      </div>
+
+      <!-- Controls Toolbar -->
+      <div class="run-bar">
+        <button type="button" class="btn" id="b-step">Step &#9656;</button>
+        <button type="button" class="btn alt" id="b-play">Play</button>
+        <button type="button" class="btn alt" id="b-reset">Reset</button>
+        <div class="seg" id="g-speed"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: REFERENCE STRING CHIPS -->
+    <section class="card">
+      <h2>
+        <span>Reference String Progress</span>
+        <span id="trace-progress-badge" style="font-family:var(--mono); text-transform:none; font-size:0.75rem;">0 / 10 processed</span>
+      </h2>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <!-- SECTION 3: TRANSLATION FLOW & OUTPUT STATS -->
+    <section class="grid">
+      <!-- Left: Translation Flow -->
+      <div class="card">
+        <h2>Address Translation Flow</h2>
+        <div class="flow">
+          <div class="node" id="n-va">
+            <b>Virtual Address</b>
+            <span id="t-va">--</span>
           </div>
-          <div class="intro-meta">
-            <div>Operating Systems Lab Project</div>
-            <div>Computer Engineering &middot; Semester 3</div>
+          <div class="arrow">&rarr;</div>
+          <div class="node" id="n-tlb">
+            <b>TLB Lookup</b>
+            <span id="t-tlb">--</span>
           </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node" id="n-pa">
+            <b id="pa-label">Physical Address</b>
+            <span id="t-pa">--</span>
+          </div>
+        </div>
+
+        <div class="bits">
+          <div class="v" id="bit-v">VPN &middot; 6 bits</div>
+          <div class="o" id="bit-o">Offset &middot; 10 bits</div>
+        </div>
+
+        <div style="font: 0.75rem var(--mono); color: var(--muted); margin-top: 4px;" id="split">
+          16-bit address: VPN [15:10] | Offset [9:0] (Page Size: 1024 B)
+        </div>
+
+        <div class="banner" id="banner">Ready. Press Step or Play to begin.</div>
+      </div>
+
+      <!-- Right: Output / Statistics -->
+      <div class="card">
+        <h2>Output &amp; Performance Statistics</h2>
+        <div class="stats">
+          <div class="stat">
+            <small>TLB Hits</small>
+            <strong id="s-h" style="color:var(--hit)">0</strong>
+          </div>
+          <div class="stat">
+            <small>TLB Misses</small>
+            <strong id="s-m" style="color:var(--miss)">0</strong>
+          </div>
+          <div class="stat">
+            <small>Effective Time</small>
+            <strong id="s-e">--</strong>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Hit Ratio (H)</small>
+            <strong id="s-hr" style="font-size:1.15rem;">--</strong>
+          </div>
+          <div class="stat">
+            <small>Miss Ratio</small>
+            <strong id="s-mr" style="font-size:1.15rem;">--</strong>
+          </div>
+          <div class="stat">
+            <small>Page Table Reads</small>
+            <strong id="s-pt" style="font-size:1.15rem;">0</strong>
+          </div>
+        </div>
+
+        <div class="bar">
+          <i class="h" id="bar-h" style="width:0%"></i>
+          <i class="m" id="bar-m" style="width:0%"></i>
+        </div>
+
+        <div class="eat-box" id="eat-txt">
+          T = 10 ns, M = 100 ns &middot; EAT = H&times;(T+M) + (1&minus;H)&times;(T+2M)<br>
+          Awaiting execution of memory references.
         </div>
       </div>
     </section>
 
-    <!-- SIMULATOR SECTION -->
-    <section id="simulator" class="simulator-section" aria-label="Interactive Simulator">
-      <div class="container">
-        <div class="sim-grid">
-
-          <!-- LEFT COLUMN: CONFIGURATION & TRANSLATION FLOW -->
-          <div class="sim-left-col">
-            
-            <!-- CONFIGURATION CARD -->
-            <div class="card" id="config-card">
-              <div class="card-header">
-                <span class="card-title">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                  Architecture Parameters
-                </span>
-                <span class="card-badge">Memory Hierarchy</span>
-              </div>
-
-              <!-- Parameter Selectors -->
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="cfg-capacity">TLB Capacity <span class="label-hint">(Entries)</span></label>
-                  <select id="cfg-capacity" aria-label="TLB Capacity">
-                    <option value="2">2 Entries</option>
-                    <option value="3">3 Entries</option>
-                    <option value="4" selected>4 Entries</option>
-                    <option value="8">8 Entries</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="cfg-pagesize">Page Size <span class="label-hint">(Bytes)</span></label>
-                  <select id="cfg-pagesize" aria-label="Page Size">
-                    <option value="256" selected>256 B (8-bit offset)</option>
-                    <option value="512">512 B (9-bit offset)</option>
-                    <option value="1024">1024 B (10-bit offset)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="cfg-policy">Replacement Policy</label>
-                  <select id="cfg-policy" aria-label="TLB Replacement Policy">
-                    <option value="LRU" selected>Least Recently Used (LRU)</option>
-                    <option value="FIFO">First-In First-Out (FIFO)</option>
-                  </select>
-                  <div class="policy-note" id="policy-explanation">
-                    LRU: Evicts entry unused for longest time; hits refresh access timestamp.
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="cfg-tlb-time">Timings (ns)</label>
-                  <div style="display:flex; gap:0.4rem;">
-                    <input type="number" id="cfg-tlb-time" value="10" min="1" max="1000" title="TLB Lookup Time (ns)" placeholder="TLB (ns)">
-                    <input type="number" id="cfg-mem-time" value="100" min="1" max="5000" title="Main Memory Access Time (ns)" placeholder="Mem (ns)">
-                  </div>
-                  <div class="policy-note">Lookup: 10ns &middot; Memory: 100ns</div>
-                </div>
-              </div>
-
-              <!-- Address Sequence Input -->
-              <div class="form-group">
-                <label for="cfg-addresses">
-                  Virtual Address Sequence
-                  <span class="label-hint">(Decimal or 0x Hex, comma or space separated)</span>
-                </label>
-                <textarea id="cfg-addresses" rows="2" spellcheck="false" placeholder="e.g. 0x0040, 0x0080, 0x0120, 0x0044, 0x0130, 0x0088">0x0040, 0x0080, 0x0120, 0x0044, 0x0130, 0x0088, 0x0210, 0x0048</textarea>
-                <div class="input-error" id="address-error" role="alert"></div>
-              </div>
-
-              <!-- Preset Sequences -->
-              <div class="presets-container">
-                <div class="presets-label">Preset Workloads</div>
-                <div class="preset-grid">
-                  <button type="button" class="btn-preset" data-preset="repeated">
-                    1. Repeated Pages
-                    <span>Temporal locality (high hit rate)</span>
-                  </button>
-                  <button type="button" class="btn-preset" data-preset="sequential">
-                    2. Sequential Access
-                    <span>Spatial locality (neighboring words)</span>
-                  </button>
-                  <button type="button" class="btn-preset" data-preset="capacity">
-                    3. Capacity Pressure
-                    <span>Exceeds TLB capacity (thrashing)</span>
-                  </button>
-                  <button type="button" class="btn-preset" data-preset="divergence">
-                    4. FIFO vs LRU Divergence
-                    <span>Demonstrates replacement contrast</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Controls Toolbar -->
-              <div class="controls-bar">
-                <button type="button" id="btn-step" class="btn btn-primary" title="Step one memory access">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                  Step
-                </button>
-                <button type="button" id="btn-run" class="btn btn-secondary" title="Run remaining trace automatically">
-                  <svg id="run-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-                  <span id="run-label">Run</span>
-                </button>
-                <button type="button" id="btn-reset" class="btn btn-secondary" title="Reset simulator state">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                  Reset
-                </button>
-
-                <div class="speed-control">
-                  <label for="cfg-speed">Speed:</label>
-                  <select id="cfg-speed" aria-label="Playback Speed">
-                    <option value="1200">0.7x (Slow)</option>
-                    <option value="750" selected>1.0x (Normal)</option>
-                    <option value="350">2.0x (Fast)</option>
-                  </select>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- ADDRESS TRANSLATION VISUALIZER CARD -->
-            <div class="visualizer-card" id="visualizer-card">
-              <div class="card-header">
-                <span class="card-title">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                  Current Address Translation Path
-                </span>
-                <span id="current-step-badge" class="card-badge">Step 0 / 0</span>
-              </div>
-
-              <!-- Address Breakdown Values -->
-              <div class="address-breakdown">
-                <div class="breakdown-box" id="box-va">
-                  <div class="box-lbl">Virtual Addr <span>VA</span></div>
-                  <div class="box-val" id="disp-va">--</div>
-                  <div class="box-sub" id="disp-va-hex">--</div>
-                </div>
-                <div class="breakdown-box" id="box-vpn">
-                  <div class="box-lbl">Page Number <span>VPN</span></div>
-                  <div class="box-val" id="disp-vpn">--</div>
-                  <div class="box-sub" id="disp-vpn-bin">--</div>
-                </div>
-                <div class="breakdown-box" id="box-offset">
-                  <div class="box-lbl">Page Offset <span>d</span></div>
-                  <div class="box-val" id="disp-offset">--</div>
-                  <div class="box-sub" id="disp-offset-bin">--</div>
-                </div>
-                <div class="breakdown-box" id="box-pa">
-                  <div class="box-lbl">Physical Addr <span>PA</span></div>
-                  <div class="box-val" id="disp-pa">--</div>
-                  <div class="box-sub" id="disp-pfn">PFN: --</div>
-                </div>
-              </div>
-
-              <!-- Bit-Level Split Strip -->
-              <div class="bit-strip-container">
-                <div class="bit-strip-header">
-                  <span>Virtual Address Bit Decomposition (16-bit space)</span>
-                  <span id="bit-split-label">VPN [15:8] | Offset [7:0]</span>
-                </div>
-                <div class="bit-strip" id="bit-strip-visual">
-                  <div class="bit-segment-vpn" id="strip-vpn" style="width: 50%;">VPN (8 bits)</div>
-                  <div class="bit-segment-offset" id="strip-offset" style="width: 50%;">Offset (8 bits)</div>
-                </div>
-                <div class="formula-math">
-                  <span>VPN = &lfloor; VA / PageSize &rfloor;</span>
-                  <span>Offset = VA mod PageSize</span>
-                  <span>PA = (PFN &times; PageSize) + Offset</span>
-                </div>
-              </div>
-
-              <!-- Flow Diagram Nodes -->
-              <div class="flow-diagram-wrapper">
-                <div class="flow-grid">
-                  <div class="flow-node" id="node-va">
-                    <div class="node-title">Virtual Address</div>
-                    <div class="node-desc" id="flow-va-desc">VA: --</div>
-                  </div>
-                  <div class="flow-arrow">&rarr;</div>
-                  <div class="flow-node" id="node-tlb">
-                    <div class="node-title">TLB Lookup</div>
-                    <div class="node-desc" id="flow-tlb-desc">Tags compared</div>
-                  </div>
-                  <div class="flow-arrow">&rarr;</div>
-                  <div class="flow-node" id="node-target">
-                    <div class="node-title" id="flow-target-title">Translation Result</div>
-                    <div class="node-desc" id="flow-target-desc">Idle</div>
-                  </div>
-                </div>
-
-                <div class="flow-status-banner" id="flow-banner">
-                  <span id="flow-banner-text">Simulator ready. Press 'Step' or 'Run' to begin execution.</span>
-                  <span id="flow-banner-badge" class="badge badge-tag">READY</span>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- RIGHT COLUMN: STATS, TLB TABLE, PAGE TABLE -->
-          <div class="sim-right-col">
-            
-            <!-- LIVE STATISTICS CARD -->
-            <div class="stats-card" id="stats-panel">
-              <div class="card-header">
-                <span class="card-title">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                  Simulation Statistics
-                </span>
-                <span class="card-badge" id="stats-total-badge">0 Accesses Processed</span>
-              </div>
-
-              <div class="stats-metrics-grid">
-                <div class="metric-cell">
-                  <div class="metric-lbl">TLB Hits</div>
-                  <div class="metric-val" id="stat-hits" style="color: var(--hit-color);">0</div>
-                  <div class="metric-sub" id="stat-hit-ratio">Hit Ratio: --%</div>
-                </div>
-                <div class="metric-cell">
-                  <div class="metric-lbl">TLB Misses</div>
-                  <div class="metric-val" id="stat-misses" style="color: var(--miss-color);">0</div>
-                  <div class="metric-sub" id="stat-miss-ratio">Miss Ratio: --%</div>
-                </div>
-                <div class="metric-cell">
-                  <div class="metric-lbl">Effective Access Time</div>
-                  <div class="metric-val" id="stat-eat">-- ns</div>
-                  <div class="metric-sub" id="stat-eat-sub">h(t+m) + (1-h)(t+2m)</div>
-                </div>
-              </div>
-
-              <!-- Hit / Miss Proportion Bar -->
-              <div class="proportion-wrapper">
-                <div class="proportion-header">
-                  <span id="prop-hit-text">Hits: 0%</span>
-                  <span id="prop-miss-text">Misses: 0%</span>
-                </div>
-                <div class="prop-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                  <div class="prop-fill-hit" id="prop-bar-hit" style="width: 0%;"></div>
-                  <div class="prop-fill-miss" id="prop-bar-miss" style="width: 0%;"></div>
-                </div>
-              </div>
-
-              <!-- EAT Step-by-Step Breakdown -->
-              <div class="eat-box">
-                <div class="eat-header">
-                  <span class="eat-title">EAT Latency Derivation (Single-Level Paging Model)</span>
-                  <span class="eat-val-large" id="eat-val-display">--</span>
-                </div>
-                <div class="eat-equation" id="eat-equation-display">
-                  EAT = h &times; (t<sub>TLB</sub> + t<sub>MEM</sub>) + (1 &minus; h) &times; (t<sub>TLB</sub> + 2 &times; t<sub>MEM</sub>)<br>
-                  Awaiting processed memory accesses to compute live effective access time.
-                </div>
-              </div>
-            </div>
-
-            <!-- TABLES ROW: TLB AND PAGE TABLE SIDE-BY-SIDE -->
-            <div class="tables-row">
-              
-              <!-- ACTIVE TLB TABLE -->
-              <div class="data-table-container">
-                <div class="table-top-bar">
-                  <div class="table-top-title">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                    Active TLB State
-                  </div>
-                  <span class="card-badge" id="tlb-occupancy-badge">0 / 4 Loaded</span>
-                </div>
-                <div class="table-responsive">
-                  <table class="sim-table" id="tlb-table" aria-label="TLB Entries">
-                    <thead>
-                      <tr>
-                        <th>Idx</th>
-                        <th>VPN</th>
-                        <th>PFN</th>
-                        <th>Order / Recency</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tlb-tbody">
-                      <!-- Rendered by JS -->
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- PAGE TABLE MAPPINGS -->
-              <div class="data-table-container">
-                <div class="table-top-bar">
-                  <div class="table-top-title">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                    Page Table (RAM)
-                  </div>
-                  <span class="card-badge">Deterministic</span>
-                </div>
-                <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
-                  <table class="sim-table" id="page-table" aria-label="Page Table Entries">
-                    <thead>
-                      <tr>
-                        <th>VPN</th>
-                        <th>PFN</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody id="page-tbody">
-                      <!-- Rendered by JS -->
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
+    <!-- SECTION 4: VISUALIZATION (CHARTS FROM SLA-2 REPORT FIG 1-4) -->
+    <section class="card">
+      <h2>Visual Analysis (Hit / Miss Count &amp; Running Hit-Ratio Graph)</h2>
+      <div class="chart-grid">
+        <!-- Chart A: Bar Chart -->
+        <div class="chart-panel">
+          <div class="chart-title">Hit / Miss Count</div>
+          <svg id="svg-bars" class="chart-svg" viewBox="0 0 200 130">
+            <!-- Rendered by JS -->
+          </svg>
         </div>
 
-        <!-- FULL WIDTH EXECUTION LOG -->
-        <div class="log-section" id="execution-log">
-          <div class="log-card">
-            <div class="log-header">
-              <span class="card-title">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                Sequential Execution Log
-              </span>
-              <span class="card-badge" id="log-count-badge">0 entries</span>
-            </div>
-            <div class="log-scroll-area">
-              <table class="log-table" id="log-table" aria-label="Simulation Execution Log">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Virtual Address</th>
-                    <th>VPN</th>
-                    <th>Offset</th>
-                    <th>Result</th>
-                    <th>PFN</th>
-                    <th>Physical Address</th>
-                    <th>Action Taken &amp; Hardware Event</th>
-                  </tr>
-                </thead>
-                <tbody id="log-tbody">
-                  <tr>
-                    <td colspan="8" class="table-empty">No memory addresses executed yet. Click 'Step' or 'Run' above.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <!-- Chart B: Running Line Graph -->
+        <div class="chart-panel">
+          <div class="chart-title">Running Hit Ratio Trajectory</div>
+          <svg id="svg-line" class="chart-svg" viewBox="0 0 540 130">
+            <!-- Rendered by JS -->
+          </svg>
         </div>
-
       </div>
     </section>
 
-    <!-- EDUCATIONAL & VIVA PREPARATION SECTION -->
-    <section id="theory" class="learning-section" aria-labelledby="theory-heading">
-      <div class="container">
-        <div class="section-eyebrow">Computer Engineering &middot; Operating Systems Coursework</div>
-        <h2 id="theory-heading" class="section-title">Core Concepts &amp; Theoretical Background</h2>
+    <!-- SECTION 5: TLB CONTENTS & EXECUTION LOG -->
+    <section class="grid">
+      <!-- TLB Contents Table -->
+      <div class="card">
+        <h2>
+          <span>TLB Contents</span>
+          <span id="occ" style="font-family:var(--mono); text-transform:none; font-weight:600;">0/3 Loaded</span>
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Index</th>
+              <th>Page No. (VPN)</th>
+              <th>Frame No. (PFN)</th>
+              <th>Valid</th>
+              <th id="th-order">Order</th>
+            </tr>
+          </thead>
+          <tbody id="tlb">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
 
-        <div class="theory-grid">
-
-          <!-- 1. What is a TLB? -->
-          <div class="theory-card">
-            <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-              1. What is a TLB?
-            </h3>
-            <p>
-              A <strong>Translation Lookaside Buffer (TLB)</strong> is a small, highly associative hardware cache embedded directly within the CPU's Memory Management Unit (MMU).
-            </p>
-            <p>
-              Because accessing page tables stored in main RAM is orders of magnitude slower than CPU registers, the TLB caches recently accessed <code>Virtual Page Number (VPN) &rarr; Physical Frame Number (PFN)</code> translations to dramatically accelerate address resolution.
-            </p>
-            <div class="theory-highlight">
-              Typical real-world TLBs hold between 64 and 1024 entries and operate within 0.5 to 1.5 clock cycles.
-            </div>
-          </div>
-
-          <!-- 2. TLB Hit vs Miss -->
-          <div class="theory-card">
-            <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-              2. TLB Hit vs. TLB Miss
-            </h3>
-            <p>
-              <strong>TLB Hit:</strong> The CPU looks up the requested VPN in the TLB associative tags. If a valid match exists, the Physical Frame Number (PFN) is returned instantaneously. Memory access penalty is strictly <code>t<sub>TLB</sub> + t<sub>MEM</sub></code>.
-            </p>
-            <p>
-              <strong>TLB Miss:</strong> The requested VPN is absent from the TLB. The hardware MMU (or OS software walk) must consult the page table located in main memory, requiring an extra memory access before populating the TLB entry.
-            </p>
-            <div class="theory-highlight">
-              Miss latency: <code>t<sub>TLB</sub> + 2 &times; t<sub>MEM</sub></code> (1 access for page table + 1 access for requested data).
-            </div>
-          </div>
-
-          <!-- 3. TLB Miss vs Page Fault (CRUCIAL VIVA DISTINCTION) -->
-          <div class="theory-card">
-            <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              3. TLB Miss vs. Page Fault (Viva Gold)
-            </h3>
-            <p>
-              Students often confuse these two events, but they occur at completely different architectural layers:
-            </p>
-            <table class="compare-table" aria-label="TLB Miss vs Page Fault Comparison">
-              <thead>
-                <tr>
-                  <th>Characteristic</th>
-                  <th>TLB Miss</th>
-                  <th>Page Fault</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Nature</strong></td>
-                  <td>Hardware / MMU cache miss</td>
-                  <td>OS Interrupt / Software Trap</td>
-                </tr>
-                <tr>
-                  <td><strong>RAM Presence</strong></td>
-                  <td>Page IS in RAM; translation absent from cache</td>
-                  <td>Page is NOT in RAM (on disk or unallocated)</td>
-                </tr>
-                <tr>
-                  <td><strong>Resolution Cost</strong></td>
-                  <td>Nanoseconds (~100ns RAM read)</td>
-                  <td>Milliseconds (~5-10ms Disk I/O)</td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="theory-highlight">
-              This lab assumes all virtual pages are mapped and resident in RAM, simulating TLB hits and misses without page faults.
-            </div>
-          </div>
-
-          <!-- 4. Effective Access Time (EAT) -->
-          <div class="theory-card">
-            <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-              4. Effective Access Time (EAT)
-            </h3>
-            <p>
-              Effective Access Time models the weighted average latency experienced by the processor during memory references:
-            </p>
-            <p>
-              <code>EAT = h &times; (t + m) + (1 &minus; h) &times; (t + 2m)</code>
-            </p>
-            <p>
-              Where:
-              <br>&bull; <code>h</code> = TLB hit ratio (0.0 to 1.0)
-              <br>&bull; <code>t</code> = TLB lookup latency (e.g. 10 ns)
-              <br>&bull; <code>m</code> = Main memory access latency (e.g. 100 ns)
-            </p>
-            <div class="theory-highlight">
-              Even a modest 80% hit ratio slashes average memory access time from 210 ns down to 130 ns, delivering a 38% speedup.
-            </div>
-          </div>
-
-          <!-- 5. Replacement Policies -->
-          <div class="theory-card">
-            <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-              5. FIFO vs. LRU Replacement
-            </h3>
-            <p>
-              When the TLB capacity is exhausted, an existing entry must be evicted:
-            </p>
-            <p>
-              &bull; <strong>FIFO (First-In, First-Out):</strong> Evicts the entry that has resided in the TLB the longest. Crucially, hits do <em>not</em> alter insertion order, making FIFO vulnerable to evicting heavily accessed pages (Belady's anomaly).
-            </p>
-            <p>
-              &bull; <strong>LRU (Least Recently Used):</strong> Evicts the entry unused for the longest interval. Every hit refreshes the entry's recency timestamp, protecting hot pages.
-            </p>
-          </div>
-
-          <!-- 6. Locality of Reference -->
-          <div class="theory-card">
-            <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83"></path></svg>
-              6. Locality of Reference
-            </h3>
-            <p>
-              TLB effectiveness relies heavily on the principle of locality:
-            </p>
-            <p>
-              &bull; <strong>Temporal Locality:</strong> If a memory location is accessed, nearby instructions or data are likely to be accessed again soon (demonstrated by Preset 1).
-            </p>
-            <p>
-              &bull; <strong>Spatial Locality:</strong> Accessing address <code>A</code> makes accessing address <code>A + 4</code> highly probable. Because an entire page shares the same VPN, sequential instructions generate consecutive TLB hits (demonstrated by Preset 2).
-            </p>
-          </div>
-
+      <!-- Execution Log -->
+      <div class="card">
+        <h2>Sequential Execution Log</h2>
+        <div class="logbox">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ref / VA</th>
+                <th>Page</th>
+                <th>Offset</th>
+                <th>Result</th>
+                <th>Frame</th>
+                <th>Phys Addr</th>
+                <th>Action &amp; Hardware Event</th>
+              </tr>
+            </thead>
+            <tbody id="log">
+              <tr>
+                <td colspan="8" class="empty">No references executed yet.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <!-- QUICK VIVA INTERACTIVE QUIZ -->
-        <div class="viva-container">
-          <div class="viva-title">Quick Viva Oral Exam Preparation</div>
-          <div class="viva-sub">Click any question below to test your understanding and reveal the ideal examiner response.</div>
-
-          <div class="viva-list">
-            
-            <div class="viva-item">
-              <div class="viva-question" tabindex="0" role="button" aria-expanded="false">
-                <span>Q1: What exact hardware steps take place during a TLB hit?</span>
-                <span class="viva-icon">+</span>
-              </div>
-              <div class="viva-answer">
-                <ol style="margin-left: 1.25rem; line-height: 1.7;">
-                  <li>The CPU generates a virtual memory address <code>VA</code> and partitions it into a Virtual Page Number (<code>VPN</code>) and Page Offset (<code>d</code>).</li>
-                  <li>The MMU conducts an associative search across the TLB tag array using the <code>VPN</code>.</li>
-                  <li>A valid matching entry is found (TLB Hit), returning the Physical Frame Number (<code>PFN</code>) in <code>t<sub>TLB</sub></code> time.</li>
-                  <li>The Physical Address is formed by concatenating <code>PFN</code> with <code>Offset</code>: <code>PA = (PFN &times; PageSize) + Offset</code>.</li>
-                  <li>A single main memory access is dispatched to read or write the operand at <code>PA</code>. No page table walk is required!</li>
-                </ol>
-              </div>
-            </div>
-
-            <div class="viva-item">
-              <div class="viva-question" tabindex="0" role="button" aria-expanded="false">
-                <span>Q2: Why is a TLB miss not necessarily a page fault?</span>
-                <span class="viva-icon">+</span>
-              </div>
-              <div class="viva-answer">
-                <p>
-                  A <strong>TLB miss</strong> simply means the translation tag was not found in the fast cache. The actual page may very well be resident in physical RAM. The MMU simply accesses the resident Page Table in memory, retrieves the valid PFN, and inserts it into the TLB (taking ~100 nanoseconds).
-                </p>
-                <p style="margin-top: 0.5rem;">
-                  A <strong>page fault</strong> only occurs if the page table entry itself has its <em>Valid/Present bit cleared to 0</em>, signaling that the page resides on secondary storage (swap/disk) and requires an OS interrupt, disk I/O, and page replacement (taking ~10 milliseconds).
-                </p>
-              </div>
-            </div>
-
-            <div class="viva-item">
-              <div class="viva-question" tabindex="0" role="button" aria-expanded="false">
-                <span>Q3: How does increasing TLB hit ratio impact Effective Access Time mathematically?</span>
-                <span class="viva-icon">+</span>
-              </div>
-              <div class="viva-answer">
-                <p>
-                  Recall the single-level EAT equation: <code>EAT = t + m + (1 &minus; h) &times; m</code>.
-                </p>
-                <p style="margin-top: 0.5rem;">
-                  Every miss inflicts an entire extra memory latency cycle (<code>m</code>). If <code>t = 10 ns</code> and <code>m = 100 ns</code>:
-                </p>
-                <ul style="margin-left: 1.25rem; margin-top: 0.4rem; line-height: 1.6;">
-                  <li>With <strong>0% Hit Ratio (h = 0)</strong>: <code>EAT = 10 + 200 = 210 ns</code>.</li>
-                  <li>With <strong>50% Hit Ratio (h = 0.5)</strong>: <code>EAT = 10 + 100 + 50 = 160 ns</code>.</li>
-                  <li>With <strong>95% Hit Ratio (h = 0.95)</strong>: <code>EAT = 10 + 100 + 5 = 115 ns</code> (near-native RAM speed).</li>
-                </ul>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
       </div>
     </section>
+
   </main>
 
-  <!-- FOOTER -->
-  <footer class="site-footer" role="contentinfo">
-    <div class="container footer-grid">
-      <div class="footer-main">
-        <div class="footer-label">Operating Systems &middot; Memory Management Lab</div>
-        <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
-          A standalone educational tool designed for Computer Engineering students to simulate, trace, and analyse TLB associative lookups, address translation mathematics, and Effective Access Time.
-        </p>
-        
-        <!-- STUDENT CREDITS -->
-        <div class="credits-box">
-          <div><span class="credits-name">Made by Jash Jain</span> | Roll 22 | PRN 125BTCM1106 &nbsp;&bull;&nbsp; Jash Jain &mdash; Roll 22 &mdash; PRN 125BTCM1106</div>
-          <div style="margin-top: 4px;"><span class="credits-name">Ridham Jain</span> | Roll 23 | PRN 125BTCM1159 &nbsp;&bull;&nbsp; Ridham Jain &mdash; Roll 23 &mdash; PRN 125BTCM1159</div>
+  <!-- FOOTER WITH STUDENT & FACULTY DETAILS -->
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <div style="font-weight:700; color:var(--ink); font-size:0.85rem; margin-bottom:4px;">
+          Shah & Anchor Kutchhi Engineering College (SAKEC)
         </div>
+        <div>Department of Computer Engineering &middot; Operating Systems (Semester 3)</div>
+        <div style="margin-top:4px;">Under the Guidance of <b>Prof. Vaishali Kosambkar</b> &middot; Academic Year 2026–27</div>
       </div>
 
-      <div class="footer-links-group">
-        <div class="footer-links-title">Further Reading &amp; Syllabus</div>
-        <a href="https://www.sakec.ac.in/" target="_blank" rel="noopener noreferrer" class="footer-link">Shah &amp; Anchor Kutchhi Engineering College (SAKEC)</a>
-        <a href="https://rvbilimagga.github.io/OS-simulator-v2/" target="_blank" rel="noopener noreferrer" class="footer-link">NITK Surathkal OS Simulator Reference</a>
-        <a href="https://digital.eee.upd.edu.ph/virtual_memory_simulator.html" target="_blank" rel="noopener noreferrer" class="footer-link">Virtual Memory Translation Simulator</a>
-        <a href="https://github.com/berkaykuru17/Web-Based-Cache-and-Virtual-Memory-Simulator" target="_blank" rel="noopener noreferrer" class="footer-link">Cache &amp; VM Simulator Reference</a>
+      <div class="credits-block">
+        <div><b>Jash Jain</b> &mdash; SYCM1 &mdash; Roll No. 22 &mdash; PRN 125BTCM1106</div>
+        <div><b>Ridham Jain</b> &mdash; SYCM1 &mdash; Roll No. 23 &mdash; PRN 125BTCM1159</div>
       </div>
     </div>
   </footer>
 
   <!-- ==========================================================================
        VANILLA JAVASCRIPT SIMULATION ENGINE
-       Strict Separation: State -> Math/Algorithm -> UI Renderer -> Event Bindings
        ========================================================================== -->
   <script>
-    (function () {
+    (() => {
       'use strict';
 
       /* ------------------------------------------------------------------------
-         1. SIMULATION STATE MODEL
+         1. FIXED ARCHITECTURAL ASSUMPTIONS & REPORT MAPPINGS
+         Matches SLA-2 Report Section 5 (Page 4):
+         Page 1 -> Frame 5 | Page 2 -> Frame 7 | Page 3 -> Frame 2 | Page 4 -> Frame 9 | Page 5 -> Frame 4
          ------------------------------------------------------------------------ */
-      const state = {
-        // Configuration
-        capacity: 4,
-        pageSize: 256,
-        policy: 'LRU', // 'LRU' or 'FIFO'
-        tlbTime: 10,   // ns
-        memTime: 100,  // ns
-        speedMs: 750,
-
-        // Input Trace
-        rawInput: '',
-        addressQueue: [],
-        currentIndex: 0,
-        isRunning: false,
-        timerId: null,
-
-        // Memory State
-        tlb: [], // Array of { valid, vpn, pfn, insertedStep, lastUsedStep }
-        pageTable: new Map(), // VPN -> PFN deterministic mapping
-
-        // Cumulative Statistics
-        processedCount: 0,
-        hits: 0,
-        misses: 0,
-        historyLog: [] // Log items
+      const FIXED_PFN_MAP = {
+        1: 5,
+        2: 7,
+        3: 2,
+        4: 9,
+        5: 4,
+        0: 3,
+        6: 8,
+        7: 12
       };
 
+      function getPFN(page) {
+        if (FIXED_PFN_MAP[page] !== undefined) {
+          return FIXED_PFN_MAP[page];
+        }
+        // Deterministic fallback for arbitrary custom pages
+        return (page * 7 + 5) % 61 + 2;
+      }
+
       /* ------------------------------------------------------------------------
-         2. PRESET WORKLOAD DEFINITIONS
+         2. PRESET DEFINITIONS (MATCHING SLA REPORT & GUI BENCHMARKS)
          ------------------------------------------------------------------------ */
-      const PRESETS = {
+      const WORK = {
+        sakec: {
+          name: 'SLA-2 Report Benchmark',
+          note: '1, 2, 3, 1, 2, 4, 1, 2, 5, 1 (FIFO=0.30, LRU=0.50)',
+          cap: 3,
+          page: 1024,
+          policy: 'FIFO',
+          refs: [1, 2, 3, 1, 2, 4, 1, 2, 5, 1],
+          isVirtualAddr: false
+        },
         repeated: {
-          capacity: 4,
-          pageSize: 256,
+          name: 'Repeated Pages',
+          note: 'High temporal locality',
+          cap: 4,
+          page: 256,
           policy: 'LRU',
-          addresses: '0x0040, 0x0080, 0x0120, 0x0044, 0x0130, 0x0088, 0x0210, 0x0048',
-          note: 'Repeated accesses to pages 0, 1, and 2 highlight temporal locality and high hit rates.'
+          refs: [64, 128, 288, 68, 304, 136, 528, 72],
+          isVirtualAddr: true
         },
         sequential: {
-          capacity: 4,
-          pageSize: 256,
+          name: 'Sequential Access',
+          note: 'High spatial locality (nearby words)',
+          cap: 4,
+          page: 256,
           policy: 'FIFO',
-          addresses: '100, 104, 108, 112, 116, 250, 260, 270, 280, 510, 520',
-          note: 'Nearby sequential addresses fall into identical virtual pages, demonstrating spatial locality.'
+          refs: [100, 104, 108, 112, 116, 250, 260, 270, 280, 510, 520],
+          isVirtualAddr: true
         },
-        capacity: {
-          capacity: 2,
-          pageSize: 256,
+        thrash: {
+          name: 'Capacity Thrashing',
+          note: 'Exceeds TLB capacity (0% hits)',
+          cap: 2,
+          page: 256,
           policy: 'FIFO',
-          addresses: '0x0010, 0x0110, 0x0210, 0x0310, 0x0020, 0x0120',
-          note: 'Accessing 4 distinct pages with a 2-entry TLB causes continuous cache thrashing.'
+          refs: [16, 272, 528, 784, 32, 288],
+          isVirtualAddr: true
         },
-        divergence: {
-          capacity: 3,
-          pageSize: 256,
-          policy: 'FIFO', // Can switch to LRU to observe the clear difference!
-          addresses: '0x0100, 0x0200, 0x0300, 0x0120, 0x0400, 0x0140',
-          note: 'At step 4, VPN 1 is reused. Under LRU it is saved; under FIFO it is evicted as the oldest resident.'
+        diverge: {
+          name: 'FIFO vs LRU Contrast',
+          note: 'Page 1 reused: LRU retains, FIFO evicts',
+          cap: 3,
+          page: 256,
+          policy: 'FIFO',
+          refs: [256, 512, 768, 288, 1024, 320],
+          isVirtualAddr: true
         }
       };
 
       /* ------------------------------------------------------------------------
-         3. DOM ELEMENT REFERENCES
+         3. SIMULATION STATE
          ------------------------------------------------------------------------ */
-      const els = {
-        capacity: document.getElementById('cfg-capacity'),
-        pageSize: document.getElementById('cfg-pagesize'),
-        policy: document.getElementById('cfg-policy'),
-        tlbTime: document.getElementById('cfg-tlb-time'),
-        memTime: document.getElementById('cfg-mem-time'),
-        addresses: document.getElementById('cfg-addresses'),
-        speed: document.getElementById('cfg-speed'),
-        addressError: document.getElementById('address-error'),
-        policyNote: document.getElementById('policy-explanation'),
-
-        btnStep: document.getElementById('btn-step'),
-        btnRun: document.getElementById('btn-run'),
-        btnReset: document.getElementById('btn-reset'),
-        runLabel: document.getElementById('run-label'),
-
-        // Visualizer
-        dispVa: document.getElementById('disp-va'),
-        dispVaHex: document.getElementById('disp-va-hex'),
-        dispVpn: document.getElementById('disp-vpn'),
-        dispVpnBin: document.getElementById('disp-vpn-bin'),
-        dispOffset: document.getElementById('disp-offset'),
-        dispOffsetBin: document.getElementById('disp-offset-bin'),
-        dispPa: document.getElementById('disp-pa'),
-        dispPfn: document.getElementById('disp-pfn'),
-
-        boxVa: document.getElementById('box-va'),
-        boxVpn: document.getElementById('box-vpn'),
-        boxOffset: document.getElementById('box-offset'),
-        boxPa: document.getElementById('box-pa'),
-
-        stepBadge: document.getElementById('current-step-badge'),
-        bitSplitLabel: document.getElementById('bit-split-label'),
-        stripVpn: document.getElementById('strip-vpn'),
-        stripOffset: document.getElementById('strip-offset'),
-
-        nodeVa: document.getElementById('node-va'),
-        nodeTlb: document.getElementById('node-tlb'),
-        nodeTarget: document.getElementById('node-target'),
-        flowVaDesc: document.getElementById('flow-va-desc'),
-        flowTlbDesc: document.getElementById('flow-tlb-desc'),
-        flowTargetTitle: document.getElementById('flow-target-title'),
-        flowTargetDesc: document.getElementById('flow-target-desc'),
-        flowBanner: document.getElementById('flow-banner'),
-        flowBannerText: document.getElementById('flow-banner-text'),
-        flowBannerBadge: document.getElementById('flow-banner-badge'),
-
-        // Stats
-        statHits: document.getElementById('stat-hits'),
-        statHitRatio: document.getElementById('stat-hit-ratio'),
-        statMisses: document.getElementById('stat-misses'),
-        statMissRatio: document.getElementById('stat-miss-ratio'),
-        statEat: document.getElementById('stat-eat'),
-        statTotalBadge: document.getElementById('stats-total-badge'),
-        propBarHit: document.getElementById('prop-bar-hit'),
-        propBarMiss: document.getElementById('prop-bar-miss'),
-        propHitText: document.getElementById('prop-hit-text'),
-        propMissText: document.getElementById('prop-miss-text'),
-        eatValDisplay: document.getElementById('eat-val-display'),
-        eatEquationDisplay: document.getElementById('eat-equation-display'),
-
-        // Tables
-        tlbOccupancyBadge: document.getElementById('tlb-occupancy-badge'),
-        tlbTbody: document.getElementById('tlb-tbody'),
-        pageTbody: document.getElementById('page-tbody'),
-        logTbody: document.getElementById('log-tbody'),
-        logCountBadge: document.getElementById('log-count-badge')
+      const S = {
+        cap: 3,
+        policy: 'FIFO',
+        page: 1024,
+        tlbTime: 10,  // T (ns)
+        memTime: 100, // M (ns)
+        work: 'sakec',
+        speed: 800,
+        
+        refs: [],
+        isVirtualAddr: false,
+        i: 0,
+        hits: 0,
+        misses: 0,
+        ptAccesses: 0,
+        tlb: [],
+        runningHitRatios: [],
+        stepResults: [],
+        timer: null
       };
 
-      /* ------------------------------------------------------------------------
-         4. DETERMINISTIC PAGE TABLE ALLOCATOR
-         ------------------------------------------------------------------------ */
-      // Non-trivial, deterministic pseudo-random mapping: VPN -> PFN
-      function getDeterministicPFN(vpn) {
-        // High quality deterministic mixing for consistent educational frame numbers
-        let h = (vpn ^ 0x5bf) * 0x45d9f3b;
-        h = ((h >>> 16) ^ h) * 0x45d9f3b;
-        h = (h >>> 16) ^ h;
-        // Frame between 2 and 63 to avoid confusion with low single-digit VPNs
-        const pfn = (Math.abs(h) % 60) + 2;
-        return pfn;
-      }
+      const $ = id => document.getElementById(id);
 
       /* ------------------------------------------------------------------------
-         5. INPUT PARSING & VALIDATION
+         4. TOGGLE BUTTONS BUILDER
          ------------------------------------------------------------------------ */
-      function parseAddressInput(raw) {
-        const tokens = raw.split(/[\s,;\n]+/).filter(t => t.trim().length > 0);
-        const parsed = [];
-        const MAX_VA = 65535; // 16-bit address space
-
-        for (let i = 0; i < tokens.length; i++) {
-          const tok = tokens[i].trim();
-          let val = NaN;
-
-          if (/^0x[0-9a-fA-F]+$/i.test(tok)) {
-            val = parseInt(tok, 16);
-          } else if (/^\d+$/.test(tok)) {
-            val = parseInt(tok, 10);
-          } else {
-            return {
-              success: false,
-              error: `Invalid address format at token "${tok}". Expected non-negative decimal or 0x hex.`
-            };
-          }
-
-          if (isNaN(val) || val < 0 || val > MAX_VA) {
-            return {
-              success: false,
-              error: `Address "${tok}" (${val}) out of 16-bit bounds [0, ${MAX_VA}].`
-            };
-          }
-
-          parsed.push(val);
-        }
-
-        if (parsed.length === 0) {
-          return {
-            success: false,
-            error: 'Address sequence is empty. Please enter at least one address.'
+      function seg(id, items, key, onPick) {
+        const box = $(id);
+        box.innerHTML = '';
+        items.forEach(([val, label]) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = label;
+          b.className = S[key] === val ? 'on' : '';
+          b.onclick = () => {
+            S[key] = val;
+            onPick && onPick();
+            sync();
           };
-        }
-
-        return { success: true, addresses: parsed };
+          box.appendChild(b);
+        });
       }
 
-      /* ------------------------------------------------------------------------
-         6. SIMULATOR INITIALIZATION & RESET
-         ------------------------------------------------------------------------ */
-      function initSimulator() {
-        // Pause any running execution
-        if (state.timerId) {
-          clearInterval(state.timerId);
-          state.timerId = null;
-        }
-        state.isRunning = false;
-
-        // Read config inputs
-        state.capacity = parseInt(els.capacity.value, 10);
-        state.pageSize = parseInt(els.pageSize.value, 10);
-        state.policy = els.policy.value;
-        state.tlbTime = Math.max(1, parseFloat(els.tlbTime.value) || 10);
-        state.memTime = Math.max(1, parseFloat(els.memTime.value) || 100);
-        state.speedMs = parseInt(els.speed.value, 10) || 750;
-
-        // Validate addresses
-        const parseResult = parseAddressInput(els.addresses.value);
-        if (!parseResult.success) {
-          els.addressError.textContent = parseResult.error;
-          els.addressError.style.display = 'block';
-          els.btnStep.disabled = true;
-          els.btnRun.disabled = true;
-          return false;
-        }
-
-        els.addressError.style.display = 'none';
-        els.addressError.textContent = '';
-        state.addressQueue = parseResult.addresses;
-        state.currentIndex = 0;
-        state.processedCount = 0;
-        state.hits = 0;
-        state.misses = 0;
-        state.historyLog = [];
-
-        // Initialize empty TLB
-        state.tlb = [];
-        for (let i = 0; i < state.capacity; i++) {
-          state.tlb.push({
-            index: i,
-            valid: false,
-            vpn: null,
-            pfn: null,
-            insertedStep: 0,
-            lastUsedStep: 0,
-            lastAction: 'none' // 'hit', 'inserted', 'evicted'
-          });
-        }
-
-        // Populate deterministic Page Table for all unique VPNs in trace
-        state.pageTable.clear();
-        state.addressQueue.forEach(va => {
-          const vpn = Math.floor(va / state.pageSize);
-          if (!state.pageTable.has(vpn)) {
-            state.pageTable.set(vpn, getDeterministicPFN(vpn));
+      function buildControls() {
+        seg('g-cap', [[2, '2'], [3, '3'], [4, '4'], [8, '8']], 'cap', reset);
+        seg('g-policy', [['FIFO', 'FIFO'], ['LRU', 'LRU']], 'policy', reset);
+        seg('g-page', [[256, '256 B'], [512, '512 B'], [1024, '1 KB']], 'page', reset);
+        seg('g-timing', [['std', '10ns / 100ns'], ['fast', '5ns / 50ns']], 'timingMode', () => {
+          if (S.timingMode === 'fast') {
+            S.tlbTime = 5; S.memTime = 50;
+          } else {
+            S.tlbTime = 10; S.memTime = 100;
           }
+          drawStats();
+        });
+        seg('g-speed', [[1300, 'Slow'], [800, 'Normal'], [350, 'Fast']], 'speed', () => {
+          if (S.timer) { stop(); play(); }
         });
 
-        // Also add a couple nearby pages for realism
-        for (let v = 0; v <= 7; v++) {
-          if (!state.pageTable.has(v)) {
-            state.pageTable.set(v, getDeterministicPFN(v));
-          }
-        }
-
-        // Update UI policy notes
-        updatePolicyNote();
-
-        // Update controls
-        els.btnStep.disabled = false;
-        els.btnRun.disabled = false;
-        els.runLabel.textContent = 'Run';
-
-        // Render UI
-        renderStaticState();
-        renderResetVisuals();
-        return true;
+        // Presets
+        const w = $('g-work');
+        w.innerHTML = '';
+        Object.entries(WORK).forEach(([k, v]) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = S.work === k ? 'on' : '';
+          b.innerHTML = `${v.name}<small>${v.note}</small>`;
+          b.onclick = () => {
+            S.work = k;
+            S.cap = v.cap;
+            S.page = v.page;
+            S.policy = v.policy;
+            S.refs = [...v.refs];
+            S.isVirtualAddr = v.isVirtualAddr;
+            $('custom-trace-input').value = S.refs.join(', ');
+            reset();
+            sync();
+          };
+          w.appendChild(b);
+        });
       }
 
-      function updatePolicyNote() {
-        if (state.policy === 'LRU') {
-          els.policyNote.textContent = 'LRU: Evicts entry unused for longest time; hits refresh recency timestamp.';
-        } else {
-          els.policyNote.textContent = 'FIFO: Evicts entry that arrived first; hits DO NOT alter insertion order.';
+      const sync = buildControls;
+
+      /* ------------------------------------------------------------------------
+         5. RESET & INITIALIZATION
+         ------------------------------------------------------------------------ */
+      function reset() {
+        stop();
+        S.i = 0;
+        S.hits = 0;
+        S.misses = 0;
+        S.ptAccesses = 0;
+        S.runningHitRatios = [];
+        S.stepResults = [];
+
+        if (!S.refs || S.refs.length === 0) {
+          S.refs = [...WORK[S.work].refs];
+          S.isVirtualAddr = WORK[S.work].isVirtualAddr;
         }
+
+        S.tlb = Array.from({ length: S.cap }, (_, idx) => ({
+          index: idx,
+          valid: 0,
+          vpn: null,
+          pfn: null,
+          ins: 0,
+          used: 0,
+          flash: ''
+        }));
+
+        $('log').innerHTML = '<tr><td colspan="8" class="empty">No references executed yet. Click Step or Play.</td></tr>';
+        ['n-va', 'n-tlb', 'n-pa'].forEach(n => $(n).className = 'node');
+        ['t-va', 't-tlb', 't-pa'].forEach(n => $(n).textContent = '--');
+        $('banner').className = 'banner';
+        $('banner').textContent = 'Ready. Press Step or Play to begin simulation.';
+
+        drawChips();
+        drawTlb();
+        drawStats();
+        drawBits();
+        drawCharts();
+
+        $('b-step').disabled = false;
+        $('b-play').disabled = false;
+        $('b-play').textContent = 'Play';
       }
 
       /* ------------------------------------------------------------------------
-         7. SIMULATION EXECUTION STEP (CORE ALGORITHM)
+         6. SIMULATION EXECUTION STEP (CORE MATHEMATICS)
          ------------------------------------------------------------------------ */
-      function executeStep() {
-        if (state.currentIndex >= state.addressQueue.length) {
-          pauseRun();
-          return false;
+      function step() {
+        if (S.i >= S.refs.length) return stop();
+
+        const stepNum = ++S.i;
+        const refVal = S.refs[stepNum - 1];
+        
+        let vpn, off, vaDisplay;
+        if (S.isVirtualAddr) {
+          vpn = Math.floor(refVal / S.page);
+          off = refVal % S.page;
+          vaDisplay = refVal;
+        } else {
+          // Direct Page Reference Number (SLA-2 benchmark mode)
+          vpn = refVal;
+          off = 0;
+          vaDisplay = `Page ${vpn}`;
         }
 
-        const stepNum = state.currentIndex + 1;
-        const va = state.addressQueue[state.currentIndex];
-        const vpn = Math.floor(va / state.pageSize);
-        const offset = va % state.pageSize;
+        // Reset highlight states
+        S.tlb.forEach(e => e.flash = '');
 
-        // Reset highlight states on TLB
-        state.tlb.forEach(e => e.lastAction = 'none');
+        // Step A: Search TLB
+        let slot = S.tlb.findIndex(e => e.valid === 1 && e.vpn === vpn);
+        const hit = slot !== -1;
+        let pfn, eventDesc;
 
-        // Step 1: Check TLB
-        let hitIndex = -1;
-        for (let i = 0; i < state.tlb.length; i++) {
-          if (state.tlb[i].valid && state.tlb[i].vpn === vpn) {
-            hitIndex = i;
-            break;
-          }
-        }
-
-        let isHit = (hitIndex !== -1);
-        let resolvedPfn = null;
-        let actionDescription = '';
-        let evictedVpn = null;
-        let targetSlot = -1;
-
-        if (isHit) {
+        if (hit) {
           // --- TLB HIT ---
-          state.hits++;
-          const entry = state.tlb[hitIndex];
-          resolvedPfn = entry.pfn;
-          entry.lastAction = 'hit';
-
-          if (state.policy === 'LRU') {
-            entry.lastUsedStep = stepNum;
-            actionDescription = `TLB HIT in Slot #${hitIndex}. PFN ${resolvedPfn} retrieved directly. Recency updated to step #${stepNum}.`;
+          S.hits++;
+          const e = S.tlb[slot];
+          pfn = e.pfn;
+          e.flash = 'hit';
+          
+          if (S.policy === 'LRU') {
+            e.used = stepNum;
+            eventDesc = `Found in slot ${slot}. PFN ${pfn} retrieved from TLB. Recency updated to step #${stepNum}.`;
           } else {
-            actionDescription = `TLB HIT in Slot #${hitIndex}. PFN ${resolvedPfn} retrieved directly. FIFO insertion order preserved.`;
+            eventDesc = `Found in slot ${slot}. PFN ${pfn} retrieved from TLB. FIFO order preserved.`;
           }
         } else {
           // --- TLB MISS ---
-          state.misses++;
-          // Fetch from Page Table
-          if (!state.pageTable.has(vpn)) {
-            state.pageTable.set(vpn, getDeterministicPFN(vpn));
-          }
-          resolvedPfn = state.pageTable.get(vpn);
+          S.misses++;
+          S.ptAccesses++; // Page table access counter
+          pfn = getPFN(vpn);
 
-          // Find an empty slot or choose eviction candidate
-          let emptySlot = state.tlb.findIndex(e => !e.valid);
-
-          if (emptySlot !== -1) {
-            // Free slot available
-            targetSlot = emptySlot;
-            state.tlb[targetSlot] = {
-              index: targetSlot,
-              valid: true,
+          // Find free slot or evict
+          let freeSlot = S.tlb.findIndex(e => e.valid === 0);
+          if (freeSlot !== -1) {
+            slot = freeSlot;
+            S.tlb[slot] = {
+              index: slot,
+              valid: 1,
               vpn: vpn,
-              pfn: resolvedPfn,
-              insertedStep: stepNum,
-              lastUsedStep: stepNum,
-              lastAction: 'inserted'
+              pfn: pfn,
+              ins: stepNum,
+              used: stepNum,
+              flash: 'new'
             };
-            actionDescription = `TLB MISS. Walked Page Table &rarr; PFN ${resolvedPfn}. Inserted mapping into empty Slot #${targetSlot}.`;
+            eventDesc = `Page table read &rarr; PFN ${pfn}. Loaded into empty slot ${slot}.`;
           } else {
-            // TLB is Full -> Eviction required
-            if (state.policy === 'FIFO') {
-              // Evict minimum insertedStep
-              let oldestIdx = 0;
-              let minInserted = state.tlb[0].insertedStep;
-              for (let i = 1; i < state.tlb.length; i++) {
-                if (state.tlb[i].insertedStep < minInserted) {
-                  minInserted = state.tlb[i].insertedStep;
-                  oldestIdx = i;
-                }
-              }
-              targetSlot = oldestIdx;
-              evictedVpn = state.tlb[targetSlot].vpn;
-              const evictInsertion = state.tlb[targetSlot].insertedStep;
-
-              state.tlb[targetSlot] = {
-                index: targetSlot,
-                valid: true,
+            // Eviction needed
+            if (S.policy === 'FIFO') {
+              // Oldest insertion
+              slot = S.tlb.reduce((oldest, cur, idx) => cur.ins < S.tlb[oldest].ins ? idx : oldest, 0);
+              const evictedPage = S.tlb[slot].vpn;
+              S.tlb[slot] = {
+                index: slot,
+                valid: 1,
                 vpn: vpn,
-                pfn: resolvedPfn,
-                insertedStep: stepNum,
-                lastUsedStep: stepNum,
-                lastAction: 'inserted'
+                pfn: pfn,
+                ins: stepNum,
+                used: stepNum,
+                flash: 'new'
               };
-              actionDescription = `TLB MISS. Evicted VPN ${evictedVpn} (FIFO oldest from step #${evictInsertion}). Loaded VPN ${vpn} &rarr; PFN ${resolvedPfn} in Slot #${targetSlot}.`;
+              eventDesc = `TLB full. Evicted Page ${evictedPage} (FIFO oldest); loaded Page ${vpn} &rarr; PFN ${pfn} in slot ${slot}.`;
             } else {
-              // LRU: Evict minimum lastUsedStep
-              let lruIdx = 0;
-              let minUsed = state.tlb[0].lastUsedStep;
-              for (let i = 1; i < state.tlb.length; i++) {
-                if (state.tlb[i].lastUsedStep < minUsed) {
-                  minUsed = state.tlb[i].lastUsedStep;
-                  lruIdx = i;
-                }
-              }
-              targetSlot = lruIdx;
-              evictedVpn = state.tlb[targetSlot].vpn;
-              const evictLastUsed = state.tlb[targetSlot].lastUsedStep;
-
-              state.tlb[targetSlot] = {
-                index: targetSlot,
-                valid: true,
+              // LRU least recently used
+              slot = S.tlb.reduce((lru, cur, idx) => cur.used < S.tlb[lru].used ? idx : lru, 0);
+              const evictedPage = S.tlb[slot].vpn;
+              S.tlb[slot] = {
+                index: slot,
+                valid: 1,
                 vpn: vpn,
-                pfn: resolvedPfn,
-                insertedStep: stepNum,
-                lastUsedStep: stepNum,
-                lastAction: 'inserted'
+                pfn: pfn,
+                ins: stepNum,
+                used: stepNum,
+                flash: 'new'
               };
-              actionDescription = `TLB MISS. Evicted VPN ${evictedVpn} (LRU least recently referenced at step #${evictLastUsed}). Loaded VPN ${vpn} &rarr; PFN ${resolvedPfn} in Slot #${targetSlot}.`;
+              eventDesc = `TLB full. Evicted Page ${evictedPage} (LRU least recent); loaded Page ${vpn} &rarr; PFN ${pfn} in slot ${slot}.`;
             }
           }
         }
 
-        // Compute Physical Address
-        const pa = (resolvedPfn * state.pageSize) + offset;
-        state.processedCount++;
-        state.currentIndex++;
+        const pa = pfn * S.page + off;
+        const res = hit ? 'hit' : 'miss';
+        S.stepResults[stepNum - 1] = res;
 
-        // Append to Log
-        const logEntry = {
-          step: stepNum,
-          va: va,
-          vaHex: '0x' + va.toString(16).toUpperCase().padStart(4, '0'),
-          vpn: vpn,
-          offset: offset,
-          result: isHit ? 'HIT' : 'MISS',
-          pfn: resolvedPfn,
-          pa: pa,
-          paHex: '0x' + pa.toString(16).toUpperCase().padStart(4, '0'),
-          action: actionDescription
-        };
-        state.historyLog.push(logEntry);
+        // Running hit ratio
+        const runningHR = S.hits / stepNum;
+        S.runningHitRatios[stepNum - 1] = runningHR;
 
-        // Update UI
-        renderDynamicStep(logEntry, isHit, hitIndex, targetSlot, vpn);
+        // Visual animations and DOM updates
+        animateFlow(res, vaDisplay, vpn, off, pfn, pa, slot);
+        
+        $('banner').className = 'banner ' + res;
+        $('banner').innerHTML = hit
+          ? `<strong>TLB HIT:</strong> Page ${vpn} found in Slot #${slot}. Physical Address = ${pa} (PFN ${pfn} &times; ${S.page} + ${off}).`
+          : `<strong>TLB MISS:</strong> Page ${vpn} absent. Page Table queried &rarr; PFN ${pfn}. Saved into Slot #${slot}.`;
 
-        // Check if finished
-        if (state.currentIndex >= state.addressQueue.length) {
-          pauseRun();
-          els.btnStep.disabled = true;
-          els.btnRun.disabled = true;
-          els.flowBannerText.textContent = `Trace complete! All ${state.addressQueue.length} addresses executed.`;
-          els.flowBannerBadge.textContent = 'DONE';
-          els.flowBannerBadge.className = 'badge badge-tag';
-        }
+        addLog(stepNum, vaDisplay, vpn, off, res, pfn, pa, eventDesc);
+        drawChips();
+        drawTlb();
+        drawStats();
+        drawBits(vpn, off);
+        drawCharts();
 
-        return true;
-      }
-
-      /* ------------------------------------------------------------------------
-         8. RUN & PLAYBACK CONTROL
-         ------------------------------------------------------------------------ */
-      function toggleRun() {
-        if (state.isRunning) {
-          pauseRun();
-        } else {
-          startRun();
-        }
-      }
-
-      function startRun() {
-        if (state.currentIndex >= state.addressQueue.length) return;
-        state.isRunning = true;
-        els.runLabel.textContent = 'Pause';
-        els.btnStep.disabled = true;
-
-        state.timerId = setInterval(() => {
-          const hasMore = executeStep();
-          if (!hasMore) {
-            pauseRun();
-          }
-        }, state.speedMs);
-      }
-
-      function pauseRun() {
-        if (state.timerId) {
-          clearInterval(state.timerId);
-          state.timerId = null;
-        }
-        state.isRunning = false;
-        els.runLabel.textContent = 'Run';
-        if (state.currentIndex < state.addressQueue.length) {
-          els.btnStep.disabled = false;
+        if (S.i >= S.refs.length) {
+          stop();
+          $('b-step').disabled = true;
+          $('b-play').disabled = true;
+          $('banner').innerHTML += ' &nbsp;&bull;&nbsp; <strong>Trace Execution Complete!</strong>';
         }
       }
 
       /* ------------------------------------------------------------------------
-         9. UI RENDERING & SYNCHRONIZATION
+         7. FLOW ANIMATION
          ------------------------------------------------------------------------ */
-      function renderStaticState() {
-        // Bit Decomposition calculations
-        const offsetBits = Math.round(Math.log2(state.pageSize));
-        const vpnBits = 16 - offsetBits;
-        const vpnPct = (vpnBits / 16) * 100;
-        const offsetPct = (offsetBits / 16) * 100;
+      function animateFlow(res, vaDisplay, vpn, off, pfn, pa, slot) {
+        const nodes = ['n-va', 'n-tlb', 'n-pa'];
+        nodes.forEach(n => $(n).className = 'node');
 
-        els.stripVpn.style.width = vpnPct + '%';
-        els.stripVpn.textContent = `VPN (${vpnBits} bits)`;
-        els.stripOffset.style.width = offsetPct + '%';
-        els.stripOffset.textContent = `Offset (${offsetBits} bits)`;
-        els.bitSplitLabel.textContent = `VPN [15:${offsetBits}] | Offset [${offsetBits - 1}:0]`;
+        $('t-va').textContent = vaDisplay;
+        $('t-tlb').textContent = res === 'hit' ? `HIT &middot; Slot #${slot}` : `MISS &middot; Page ${vpn}`;
+        $('t-pa').textContent = `${pa} (PFN ${pfn})`;
+        $('pa-label').textContent = res === 'hit' ? 'Physical Address' : 'Page Table &rarr; PA';
 
-        renderTlbTable();
-        renderPageTable(null);
-        renderStats();
-        renderLogTable();
-      }
-
-      function renderResetVisuals() {
-        els.dispVa.textContent = '--';
-        els.dispVaHex.textContent = '--';
-        els.dispVpn.textContent = '--';
-        els.dispVpnBin.textContent = '--';
-        els.dispOffset.textContent = '--';
-        els.dispOffsetBin.textContent = '--';
-        els.dispPa.textContent = '--';
-        els.dispPfn.textContent = 'PFN: --';
-
-        els.boxVa.classList.remove('active');
-        els.boxVpn.classList.remove('active');
-        els.boxOffset.classList.remove('active');
-        els.boxPa.classList.remove('active');
-
-        els.stepBadge.textContent = `Step 0 / ${state.addressQueue.length}`;
-        els.flowVaDesc.textContent = 'VA: --';
-        els.flowTlbDesc.textContent = 'Tags idle';
-        els.flowTargetTitle.textContent = 'Translation Result';
-        els.flowTargetDesc.textContent = 'Idle';
-
-        els.nodeVa.className = 'flow-node';
-        els.nodeTlb.className = 'flow-node';
-        els.nodeTarget.className = 'flow-node';
-
-        els.flowBanner.className = 'flow-status-banner';
-        els.flowBannerText.textContent = `Loaded ${state.addressQueue.length} addresses. Press 'Step' to inspect.`;
-        els.flowBannerBadge.textContent = 'READY';
-        els.flowBannerBadge.className = 'badge badge-tag';
-      }
-
-      function renderDynamicStep(log, isHit, hitSlot, targetSlot, activeVpn) {
-        // 1. Address Breakdown Card
-        els.dispVa.textContent = log.va;
-        els.dispVaHex.textContent = log.vaHex;
-        els.dispVpn.textContent = log.vpn;
-        els.dispVpnBin.textContent = '0x' + log.vpn.toString(16).toUpperCase();
-        els.dispOffset.textContent = log.offset;
-        els.dispOffsetBin.textContent = '0x' + log.offset.toString(16).toUpperCase();
-        els.dispPa.textContent = log.pa;
-        els.dispPfn.textContent = `PFN: ${log.pfn} (${log.paHex})`;
-
-        els.boxVa.classList.add('active');
-        els.boxVpn.classList.add('active');
-        els.boxOffset.classList.add('active');
-        els.boxPa.classList.add('active');
-
-        els.stepBadge.textContent = `Step ${log.step} / ${state.addressQueue.length}`;
-
-        // 2. Flow Diagram
-        els.flowVaDesc.textContent = `${log.va} (VPN ${log.vpn})`;
-        els.nodeVa.className = 'flow-node active-hit';
-
-        if (isHit) {
-          els.nodeTlb.className = 'flow-node active-hit';
-          els.flowTlbDesc.textContent = `HIT in Slot #${hitSlot}`;
-
-          els.nodeTarget.className = 'flow-node active-hit';
-          els.flowTargetTitle.textContent = 'Physical Address';
-          els.flowTargetDesc.textContent = `PA: ${log.pa} (PFN ${log.pfn})`;
-
-          els.flowBanner.className = 'flow-status-banner is-hit';
-          els.flowBannerText.textContent = `Step #${log.step}: TLB HIT for VPN ${log.vpn}. Obtained PFN ${log.pfn} directly from TLB!`;
-          els.flowBannerBadge.textContent = 'HIT';
-          els.flowBannerBadge.className = 'badge badge-hit';
-        } else {
-          els.nodeTlb.className = 'flow-node active-miss';
-          els.flowTlbDesc.textContent = `MISS (VPN ${log.vpn} absent)`;
-
-          els.nodeTarget.className = 'flow-node active-miss';
-          els.flowTargetTitle.textContent = 'Page Table Walk';
-          els.flowTargetDesc.textContent = `Fetched PFN ${log.pfn}`;
-
-          els.flowBanner.className = 'flow-status-banner is-miss';
-          els.flowBannerText.textContent = `Step #${log.step}: TLB MISS for VPN ${log.vpn}. Walked Page Table &rarr; PFN ${log.pfn}, cached in Slot #${targetSlot}.`;
-          els.flowBannerBadge.textContent = 'MISS';
-          els.flowBannerBadge.className = 'badge badge-miss';
-        }
-
-        // 3. Render TLB Table & Page Table
-        renderTlbTable();
-        renderPageTable(activeVpn);
-
-        // 4. Render Cumulative Stats
-        renderStats();
-
-        // 5. Append Row to Execution Log
-        appendLogRow(log);
-      }
-
-      function renderTlbTable() {
-        els.tlbTbody.innerHTML = '';
-        let validCount = 0;
-
-        state.tlb.forEach(entry => {
-          if (entry.valid) validCount++;
-
-          const tr = document.createElement('tr');
-          if (entry.lastAction === 'hit') tr.className = 'tlb-hit-row';
-          if (entry.lastAction === 'inserted') tr.className = 'tlb-insert-row';
-
-          let orderText = '--';
-          if (entry.valid) {
-            if (state.policy === 'FIFO') {
-              orderText = `In: step #${entry.insertedStep}`;
-            } else {
-              orderText = `Used: step #${entry.lastUsedStep}`;
-            }
-          }
-
-          tr.innerHTML = `
-            <td>#${entry.index}</td>
-            <td>${entry.valid ? entry.vpn : '<span style="color:var(--text-subtle);">--</span>'}</td>
-            <td>${entry.valid ? entry.pfn : '<span style="color:var(--text-subtle);">--</span>'}</td>
-            <td style="font-size:0.73rem;">${orderText}</td>
-          `;
-          els.tlbTbody.appendChild(tr);
-        });
-
-        els.tlbOccupancyBadge.textContent = `${validCount} / ${state.capacity} Loaded`;
-      }
-
-      function renderPageTable(activeVpn) {
-        els.pageTbody.innerHTML = '';
-        const sortedVpns = Array.from(state.pageTable.keys()).sort((a, b) => a - b);
-
-        sortedVpns.forEach(vpn => {
-          const pfn = state.pageTable.get(vpn);
-          const tr = document.createElement('tr');
-          const isCurrent = (activeVpn !== null && vpn === activeVpn);
-
-          if (isCurrent) {
-            tr.className = 'page-table-active';
-          }
-
-          tr.innerHTML = `
-            <td>VPN ${vpn}</td>
-            <td>PFN ${pfn}</td>
-            <td><span class="badge ${isCurrent ? 'badge-miss' : 'badge-tag'}">${isCurrent ? 'LOOKUP' : 'Resident'}</span></td>
-          `;
-          els.pageTbody.appendChild(tr);
+        const cls = ['', res, res];
+        nodes.forEach((n, k) => {
+          setTimeout(() => {
+            $(n).className = 'node lit ' + cls[k];
+          }, k * 200);
         });
       }
 
-      function renderStats() {
-        const total = state.processedCount;
-        els.statTotalBadge.textContent = `${total} Access${total === 1 ? '' : 'es'} Processed`;
-        els.statHits.textContent = state.hits;
-        els.statMisses.textContent = state.misses;
+      /* ------------------------------------------------------------------------
+         8. PLAYBACK CONTROLS
+         ------------------------------------------------------------------------ */
+      function play() {
+        if (S.timer) return;
+        $('b-play').textContent = 'Pause';
+        $('b-step').disabled = true;
+        step();
+        if (S.i >= S.refs.length) return;
+        S.timer = setInterval(step, S.speed);
+      }
 
-        if (total === 0) {
-          els.statHitRatio.textContent = 'Hit Ratio: --%';
-          els.statMissRatio.textContent = 'Miss Ratio: --%';
-          els.statEat.textContent = '-- ns';
-          els.propBarHit.style.width = '0%';
-          els.propBarMiss.style.width = '0%';
-          els.propHitText.textContent = 'Hits: 0%';
-          els.propMissText.textContent = 'Misses: 0%';
-          els.eatValDisplay.textContent = '--';
-          els.eatEquationDisplay.innerHTML = `
-            EAT = h &times; (t<sub>TLB</sub> + t<sub>MEM</sub>) + (1 &minus; h) &times; (t<sub>TLB</sub> + 2 &times; t<sub>MEM</sub>)<br>
-            Awaiting processed memory accesses to compute live effective access time.
+      function stop() {
+        clearInterval(S.timer);
+        S.timer = null;
+        $('b-play').textContent = 'Play';
+        if (S.i < S.refs.length) $('b-step').disabled = false;
+      }
+
+      /* ------------------------------------------------------------------------
+         9. DOM RENDERING ROUTINES
+         ------------------------------------------------------------------------ */
+      function drawChips() {
+        $('chips').innerHTML = S.refs.map((ref, k) => {
+          const isDone = k < S.i;
+          const isNow = k === S.i - 1;
+          const status = isDone ? S.stepResults[k] : '';
+          return `<span class="chip ${status} ${isNow ? 'now' : ''}">${ref}</span>`;
+        }).join('');
+
+        $('trace-progress-badge').textContent = `${S.i} / ${S.refs.length} processed`;
+      }
+
+      function drawTlb() {
+        $('th-order').textContent = S.policy === 'LRU' ? 'Last Used' : 'Loaded At';
+        
+        $('tlb').innerHTML = S.tlb.map(e => {
+          if (e.valid) {
+            const orderStr = S.policy === 'LRU' ? `Step #${e.used}` : `Step #${e.ins}`;
+            return `
+              <tr class="${e.flash ? 'flash-' + e.flash : ''}">
+                <td>#${e.index}</td>
+                <td><strong>Page ${e.vpn}</strong></td>
+                <td>Frame ${e.pfn}</td>
+                <td><span class="tag hit">1</span></td>
+                <td>${orderStr}</td>
+              </tr>
+            `;
+          } else {
+            return `
+              <tr>
+                <td>#${e.index}</td>
+                <td style="color:var(--muted)">-</td>
+                <td style="color:var(--muted)">-</td>
+                <td><span style="color:var(--muted)">0</span></td>
+                <td style="color:var(--muted)">empty</td>
+              </tr>
+            `;
+          }
+        }).join('');
+
+        const validCount = S.tlb.filter(e => e.valid).length;
+        $('occ').textContent = `${validCount}/${S.cap} Loaded`;
+      }
+
+      function drawStats() {
+        const tot = S.hits + S.misses;
+        $('s-h').textContent = S.hits;
+        $('s-m').textContent = S.misses;
+        $('s-pt').textContent = S.ptAccesses;
+
+        if (tot === 0) {
+          $('s-hr').textContent = '--';
+          $('s-mr').textContent = '--';
+          $('s-e').textContent = '--';
+          $('bar-h').style.width = '0%';
+          $('bar-m').style.width = '0%';
+          $('eat-txt').innerHTML = `
+            T = ${S.tlbTime} ns, M = ${S.memTime} ns &middot; EAT = H&times;(T+M) + (1&minus;H)&times;(T+2M)<br>
+            Awaiting memory access execution to compute effective access time.
           `;
           return;
         }
 
-        const h = state.hits / total;
-        const mRatio = state.misses / total;
-        const hitPct = (h * 100).toFixed(1);
-        const missPct = (mRatio * 100).toFixed(1);
+        const h = S.hits / tot;
+        const mr = S.misses / tot;
+        const eat = h * (S.tlbTime + S.memTime) + (1 - h) * (S.tlbTime + 2 * S.memTime);
 
-        els.statHitRatio.textContent = `Hit Ratio: ${hitPct}%`;
-        els.statMissRatio.textContent = `Miss Ratio: ${missPct}%`;
+        $('s-hr').textContent = h.toFixed(2);
+        $('s-mr').textContent = mr.toFixed(2);
+        $('s-e').textContent = `${eat.toFixed(1)} ns`;
 
-        // Proportion Bar
-        els.propBarHit.style.width = `${hitPct}%`;
-        els.propBarMiss.style.width = `${missPct}%`;
-        els.propHitText.textContent = `Hits: ${hitPct}% (${state.hits})`;
-        els.propMissText.textContent = `Misses: ${missPct}% (${state.misses})`;
+        $('bar-h').style.width = `${(h * 100).toFixed(1)}%`;
+        $('bar-m').style.width = `${(mr * 100).toFixed(1)}%`;
 
-        // EAT Calculation:
-        // EAT = h * (tlb + mem) + (1 - h) * (tlb + 2*mem)
-        const t = state.tlbTime;
-        const m = state.memTime;
-        const hitCost = t + m;
-        const missCost = t + (2 * m);
-        const eat = (h * hitCost) + ((1 - h) * missCost);
-
-        els.statEat.textContent = `${eat.toFixed(1)} ns`;
-        els.eatValDisplay.textContent = `${eat.toFixed(1)} ns`;
-
-        els.eatEquationDisplay.innerHTML = `
-          EAT = (${h.toFixed(3)} &times; [${t} + ${m}]) + (${(1 - h).toFixed(3)} &times; [${t} + 2(${m})])<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;= (${h.toFixed(3)} &times; ${hitCost} ns) + (${(1 - h).toFixed(3)} &times; ${missCost} ns) = <strong>${eat.toFixed(2)} ns</strong>
+        $('eat-txt').innerHTML = `
+          H = ${h.toFixed(2)}, Miss = ${mr.toFixed(2)} &middot; 
+          EAT = ${h.toFixed(2)}&times;(${S.tlbTime}+${S.memTime}) + ${mr.toFixed(2)}&times;(${S.tlbTime}+${2*S.memTime}) = <strong>${eat.toFixed(1)} ns</strong>
         `;
       }
 
-      function renderLogTable() {
-        els.logTbody.innerHTML = '';
-        els.logCountBadge.textContent = '0 entries';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="8" class="table-empty">No memory addresses executed yet. Click 'Step' or 'Run' above.</td>`;
-        els.logTbody.appendChild(tr);
+      function drawBits(vpn, off) {
+        const ob = Math.round(Math.log2(S.page));
+        const vb = 16 - ob;
+
+        $('bit-v').style.width = (vb / 16 * 100) + '%';
+        $('bit-o').style.width = (ob / 16 * 100) + '%';
+
+        $('bit-v').textContent = vpn !== undefined ? `VPN ${vpn} (${vb}b)` : `VPN (${vb} bits)`;
+        $('bit-o').textContent = off !== undefined ? `Offset ${off} (${ob}b)` : `Offset (${ob} bits)`;
+
+        $('split').textContent = `16-bit virtual address: Page Number [15:${ob}] | Offset [${ob - 1}:0] (Page Size: ${S.page} B)`;
       }
 
-      function appendLogRow(log) {
-        if (state.historyLog.length === 1) {
-          els.logTbody.innerHTML = ''; // clear empty message
-        }
-
-        // Remove active class from previous rows
-        const prevActive = els.logTbody.querySelector('.active-log-row');
-        if (prevActive) prevActive.classList.remove('active-log-row');
+      function addLog(n, va, vpn, off, res, pfn, pa, event) {
+        const body = $('log');
+        if (n === 1) body.innerHTML = '';
 
         const tr = document.createElement('tr');
-        tr.className = 'active-log-row';
-
-        const badgeClass = log.result === 'HIT' ? 'badge-hit' : 'badge-miss';
-
         tr.innerHTML = `
-          <td><strong>#${log.step}</strong></td>
-          <td>${log.va} <span style="color:var(--text-subtle);">(${log.vaHex})</span></td>
-          <td>${log.vpn}</td>
-          <td>${log.offset}</td>
-          <td><span class="badge ${badgeClass}">${log.result}</span></td>
-          <td>${log.pfn}</td>
-          <td>${log.pa} <span style="color:var(--text-subtle);">(${log.paHex})</span></td>
-          <td style="max-width:320px; white-space:normal; font-size:0.75rem;">${log.action}</td>
+          <td><strong>#${n}</strong></td>
+          <td>${va}</td>
+          <td>Page ${vpn}</td>
+          <td>${off}</td>
+          <td><span class="tag ${res}">${res.toUpperCase()}</span></td>
+          <td>Frame ${pfn}</td>
+          <td><strong>${pa}</strong></td>
+          <td style="max-width:280px; white-space:normal; font-family:inherit;">${event}</td>
         `;
-
-        els.logTbody.appendChild(tr);
-        els.logCountBadge.textContent = `${state.historyLog.length} access${state.historyLog.length === 1 ? '' : 'es'}`;
-
-        // Auto scroll to bottom
-        tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        body.appendChild(tr);
+        tr.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
 
       /* ------------------------------------------------------------------------
-         10. EVENT HANDLERS & BINDINGS
+         10. DUAL-CHART VISUALIZATION (MATCHING SLA-2 FIGURES 1-4)
          ------------------------------------------------------------------------ */
-      function setupEventListeners() {
-        // Step, Run, Reset
-        els.btnStep.addEventListener('click', () => {
-          pauseRun();
-          executeStep();
+      function drawCharts() {
+        // --- CHART A: HIT / MISS BAR CHART ---
+        const svgBars = $('svg-bars');
+        const maxVal = Math.max(10, S.refs.length);
+        const hitH = (S.hits / maxVal) * 90;
+        const missH = (S.misses / maxVal) * 90;
+
+        svgBars.innerHTML = `
+          <!-- Y Axis Grid -->
+          <line x1="30" y1="15" x2="190" y2="15" stroke="var(--line2)" stroke-dasharray="2,2"/>
+          <line x1="30" y1="60" x2="190" y2="60" stroke="var(--line2)" stroke-dasharray="2,2"/>
+          <line x1="30" y1="105" x2="190" y2="105" stroke="var(--line2)"/>
+          
+          <text x="24" y="19" font-size="8" text-anchor="end" fill="var(--muted)" font-family="var(--mono)">${maxVal}</text>
+          <text x="24" y="64" font-size="8" text-anchor="end" fill="var(--muted)" font-family="var(--mono)">${Math.round(maxVal/2)}</text>
+          <text x="24" y="108" font-size="8" text-anchor="end" fill="var(--muted)" font-family="var(--mono)">0</text>
+
+          <!-- Hit Bar -->
+          <rect x="52" y="${105 - hitH}" width="42" height="${hitH}" fill="var(--hit)" rx="3"/>
+          <text x="73" y="${Math.max(12, 100 - hitH)}" font-size="10" font-weight="700" text-anchor="middle" fill="var(--hit)" font-family="var(--mono)">${S.hits}</text>
+          <text x="73" y="122" font-size="9" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">TLB Hits</text>
+
+          <!-- Miss Bar -->
+          <rect x="122" y="${105 - missH}" width="42" height="${missH}" fill="var(--miss)" rx="3"/>
+          <text x="143" y="${Math.max(12, 100 - missH)}" font-size="10" font-weight="700" text-anchor="middle" fill="var(--miss)" font-family="var(--mono)">${S.misses}</text>
+          <text x="143" y="122" font-size="9" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">TLB Misses</text>
+        `;
+
+        // --- CHART B: RUNNING HIT RATIO LINE GRAPH ---
+        const svgLine = $('svg-line');
+        const numRefs = S.refs.length;
+        const leftX = 35;
+        const rightX = 520;
+        const topY = 15;
+        const botY = 105;
+        const plotW = rightX - leftX;
+        const plotH = botY - topY;
+
+        let gridLines = '';
+        [1.0, 0.8, 0.6, 0.4, 0.2, 0.0].forEach(val => {
+          const y = topY + (1 - val) * plotH;
+          gridLines += `
+            <line x1="${leftX}" y1="${y}" x2="${rightX}" y2="${y}" stroke="var(--line2)" stroke-dasharray="${val > 0 ? '2,2' : 'none'}"/>
+            <text x="${leftX - 6}" y="${y + 3}" font-size="8" text-anchor="end" fill="var(--muted)" font-family="var(--mono)">${val.toFixed(1)}</text>
+          `;
         });
 
-        els.btnRun.addEventListener('click', () => {
-          toggleRun();
-        });
+        // X Axis labels
+        let xLabels = '';
+        for (let k = 1; k <= numRefs; k++) {
+          const x = leftX + ((k - 1) / Math.max(1, numRefs - 1)) * plotW;
+          xLabels += `
+            <text x="${x}" y="${botY + 14}" font-size="8" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">${k}</text>
+          `;
+        }
 
-        els.btnReset.addEventListener('click', () => {
-          initSimulator();
-        });
+        // Points & Line path
+        let pathD = '';
+        let pointsSvg = '';
 
-        // Speed changes
-        els.speed.addEventListener('change', () => {
-          state.speedMs = parseInt(els.speed.value, 10) || 750;
-          if (state.isRunning) {
-            pauseRun();
-            startRun();
-          }
-        });
+        if (S.runningHitRatios.length > 0) {
+          S.runningHitRatios.forEach((hr, idx) => {
+            const k = idx + 1;
+            const x = leftX + ((k - 1) / Math.max(1, numRefs - 1)) * plotW;
+            const y = topY + (1 - hr) * plotH;
 
-        // Config parameter changes trigger full re-initialization
-        const configInputs = [
-          els.capacity,
-          els.pageSize,
-          els.policy,
-          els.tlbTime,
-          els.memTime,
-          els.addresses
-        ];
-
-        configInputs.forEach(input => {
-          input.addEventListener('input', () => {
-            initSimulator();
-          });
-          input.addEventListener('change', () => {
-            initSimulator();
-          });
-        });
-
-        // Preset Workload Buttons
-        document.querySelectorAll('.btn-preset').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const key = btn.getAttribute('data-preset');
-            const preset = PRESETS[key];
-            if (!preset) return;
-
-            els.capacity.value = preset.capacity;
-            els.pageSize.value = preset.pageSize;
-            els.policy.value = preset.policy;
-            els.addresses.value = preset.addresses;
-
-            initSimulator();
-          });
-        });
-
-        // Quick Viva Check Accordion
-        document.querySelectorAll('.viva-question').forEach(q => {
-          q.addEventListener('click', () => {
-            const item = q.closest('.viva-item');
-            const ans = item.querySelector('.viva-answer');
-            const isOpen = ans.classList.contains('open');
-
-            if (isOpen) {
-              ans.classList.remove('open');
-              item.classList.remove('is-open');
-              q.setAttribute('aria-expanded', 'false');
+            if (idx === 0) {
+              pathD += `M ${x} ${y}`;
             } else {
-              ans.classList.add('open');
-              item.classList.add('is-open');
-              q.setAttribute('aria-expanded', 'true');
+              pathD += ` L ${x} ${y}`;
             }
-          });
 
-          // Keyboard support (Enter or Space)
-          q.addEventListener('keydown', e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              q.click();
-            }
+            pointsSvg += `
+              <circle cx="${x}" cy="${y}" r="3.5" fill="var(--hit)" stroke="#FFFFFF" stroke-width="1.5"/>
+            `;
           });
-        });
+        }
+
+        svgLine.innerHTML = `
+          ${gridLines}
+          ${xLabels}
+          <text x="${(leftX + rightX)/2}" y="126" font-size="8" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">Reference Sequence Number</text>
+          ${pathD ? `<path d="${pathD}" fill="none" stroke="var(--hit)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
+          ${pointsSvg}
+        `;
       }
 
-      // Initialize on DOM ready
-      document.addEventListener('DOMContentLoaded', () => {
-        setupEventListeners();
-        initSimulator();
-      });
+      /* ------------------------------------------------------------------------
+         11. EVENT LISTENERS
+         ------------------------------------------------------------------------ */
+      function setupListeners() {
+        $('b-step').onclick = () => { stop(); step(); };
+        $('b-play').onclick = () => S.timer ? stop() : play();
+        $('b-reset').onclick = () => reset();
+
+        // Custom trace input
+        $('btn-apply-custom').onclick = applyCustomTrace;
+        $('custom-trace-input').onkeydown = e => {
+          if (e.key === 'Enter') applyCustomTrace();
+        };
+      }
+
+      function applyCustomTrace() {
+        const val = $('custom-trace-input').value.trim();
+        if (!val) return;
+
+        const tokens = val.split(/[\s,;]+/).map(t => parseInt(t, 10)).filter(n => !isNaN(n) && n >= 0);
+        if (tokens.length === 0) {
+          alert('Please enter valid non-negative integer reference numbers.');
+          return;
+        }
+
+        // Heuristic: If any token > 64, assume virtual addresses; otherwise page numbers
+        const maxVal = Math.max(...tokens);
+        S.isVirtualAddr = maxVal > 64;
+        S.refs = tokens;
+        S.work = 'custom';
+
+        // Unset active preset button highlights
+        document.querySelectorAll('#g-work button').forEach(b => b.classList.remove('on'));
+        reset();
+      }
+
+      // Initialize
+      setupListeners();
+      buildControls();
+      $('custom-trace-input').value = WORK.sakec.refs.join(', ');
+      S.refs = [...WORK.sakec.refs];
+      reset();
 
     })();
   </script>
