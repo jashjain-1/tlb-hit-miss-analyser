@@ -9,10 +9,10 @@
 
 ## Key Features & Highlights
 
-- **Pure, Focused Simulator:** Zero extraneous bloat. Direct, single-click segmented controls for TLB size, replacement policy, page size, and workload presets.
-- **SLA-2 Report Benchmark:** Comes pre-loaded with the official college benchmark reference sequence:  
+- **Pure, Focused Simulator:** Zero extraneous bloat. Native `<select>` dropdown controls for TLB capacity, replacement policy, page size, hardware latency, workload presets, playback speed, and reference interpretation.
+- **Standard Reference Benchmark:** Comes pre-loaded with the standard benchmark reference sequence:  
   `1, 2, 3, 1, 2, 4, 1, 2, 5, 1` (with verified Page Table mappings: Page 1 &rarr; Frame 5, Page 2 &rarr; Frame 7, Page 3 &rarr; Frame 2, Page 4 &rarr; Frame 9, Page 5 &rarr; Frame 4).
-- **Dual Visualisation (Matching SLA-2 Report Figures 1–4):**
+- **Dual Visualisation (Bar Chart & Running Trajectory):**
   1. **Hit / Miss Count Bar Chart:** Clean comparative histogram of TLB hits vs misses.
   2. **Running Hit Ratio Trajectory Graph:** Live SVG coordinate plot (0.0 to 1.0) showing how hit ratio evolves with every reference in the trace.
 - **Address Translation Flow:** Live animation showing Virtual Address decomposition (`VPN` &middot; `Offset`), TLB tag search, Page Table access on miss, and Physical Address generation ($PA = PFN \times \text{PageSize} + \text{Offset}$).
@@ -23,7 +23,7 @@
 
 ---
 
-## Verified Benchmark Results (Table 3 from SLA-2 Report)
+## Verified Benchmark Results (Standard Reference Benchmark)
 
 For the benchmark reference string `1, 2, 3, 1, 2, 4, 1, 2, 5, 1` ($T = 10\text{ ns}, M = 100\text{ ns}$):
 

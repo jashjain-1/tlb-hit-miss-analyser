@@ -3,36 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TLB Hit / Miss Analyser | SAKEC OS Lab</title>
+  <title>TLB Hit / Miss Analyser &middot; Educational OS Simulator</title>
   <style>
     :root {
-      --bg: #FAF9F6;
+      /* Restrained Architectural Palette */
+      --bg: #F8F9FA;
       --card: #FFFFFF;
-      --soft: #F4F4F0;
-      --line: #E5E6E1;
-      --line2: #D2D4CC;
-      --ink: #26312D;
-      --muted: #68716D;
+      --subtle: #F1F3F5;
+      --subtle-hover: #E9ECEF;
+      --line: #E2E4E9;
+      --line-strong: #D1D5DB;
+      --ink: #111827;
+      --ink-secondary: #4B5563;
+      --muted: #6B7280;
       
-      /* Semantic Status */
-      --hit: #245C29;
-      --hit-bg: #EEF6ED;
-      --hit-line: #BBDCBA;
-      --miss: #933224;
-      --miss-bg: #FDF1EE;
-      --miss-line: #F2C7BF;
-      
-      /* Accent Tones */
-      --blue: #DFEAF5;
-      --blue-ink: #1F4B73;
-      --peach: #F4E2D8;
-      --peach-ink: #823E1E;
-      --lavender: #EAE3F4;
-      --lavender-ink: #4A326E;
-      
-      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
-      --radius: 8px;
-      --trans: 180ms ease;
+      /* Semantic Status Colors (Restrained Pastels) */
+      --hit-text: #166534;
+      --hit-bg: #F0FDF4;
+      --hit-line: #BBF7D0;
+      --hit-bar: #22C55E;
+
+      --miss-text: #991B1B;
+      --miss-bg: #FEF2F2;
+      --miss-line: #FECACA;
+      --miss-bar: #EF4444;
+
+      /* Selection & Focus Accents */
+      --accent: #1E293B;
+      --accent-hover: #334155;
+      --focus-ring: #2563EB;
+      --info-bg: #EFF6FF;
+      --info-line: #BFDBFE;
+      --info-text: #1E40AF;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --radius: 6px;
+      --radius-sm: 4px;
+      --trans: 140ms ease;
     }
 
     *, *::before, *::after {
@@ -44,7 +52,7 @@
     body {
       background: var(--bg);
       color: var(--ink);
-      font: 14.5px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font: 14px/1.5 var(--sans);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -54,13 +62,13 @@
     .wrap {
       max-width: 1140px;
       margin: 0 auto;
-      padding: 0 20px;
+      padding: 0 18px;
       width: 100%;
     }
 
     /* HEADER */
     header {
-      padding: 24px 0 16px;
+      padding: 18px 0 14px;
       border-bottom: 1px solid var(--line);
       background: var(--card);
     }
@@ -72,27 +80,28 @@
       gap: 12px;
     }
     h1 {
-      font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+      font-size: clamp(1.25rem, 2.2vw, 1.65rem);
       letter-spacing: -0.02em;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 10px;
+      color: var(--ink);
     }
     .badge-univ {
       font-size: 0.72rem;
       font-family: var(--mono);
-      background: var(--soft);
-      border: 1px solid var(--line2);
+      background: var(--subtle);
+      border: 1px solid var(--line);
       padding: 2px 8px;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       color: var(--muted);
       font-weight: 500;
     }
     header p {
       color: var(--muted);
-      margin-top: 4px;
-      font-size: 0.9rem;
+      margin-top: 3px;
+      font-size: 0.88rem;
     }
 
     /* CARD STYLING */
@@ -100,14 +109,14 @@
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 18px 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(38,49,45,0.03);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 2px rgba(17,24,39,0.02);
     }
     .card h2 {
       font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.07em;
       color: var(--muted);
       margin-bottom: 12px;
       font-weight: 600;
@@ -120,7 +129,7 @@
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
     @media (max-width: 860px) {
       .grid {
@@ -128,299 +137,302 @@
       }
     }
 
-    /* TOGGLE GROUPS */
-    .opts {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 12px 16px;
-    }
-    .opt label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--ink);
-    }
-    .seg {
-      display: flex;
-      border: 1px solid var(--line2);
-      border-radius: 6px;
-      overflow: hidden;
-      background: var(--card);
-    }
-    .seg button {
-      flex: 1;
-      padding: 7px 6px;
-      border: 0;
-      border-right: 1px solid var(--line2);
-      background: var(--card);
-      color: var(--ink);
-      font: inherit;
-      font-size: 0.82rem;
-      cursor: pointer;
-      transition: background var(--trans), color var(--trans);
-      user-select: none;
-      white-space: nowrap;
-    }
-    .seg button:last-child {
-      border-right: 0;
-    }
-    .seg button:hover {
-      background: var(--soft);
-    }
-    .seg button.on {
-      background: var(--ink);
-      color: #FFFFFF;
-      font-weight: 600;
-    }
-
-    /* PRESETS */
-    .presets {
+    /* CONFIGURATION DROPDOWNS */
+    .settings-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 8px;
+      gap: 12px 14px;
     }
-    .presets button {
-      text-align: left;
-      padding: 9px 12px;
-      border: 1px solid var(--line2);
-      border-radius: 6px;
-      background: var(--card);
-      font: inherit;
-      font-size: 0.84rem;
-      cursor: pointer;
-      transition: all var(--trans);
-    }
-    .presets button small {
-      display: block;
-      color: var(--muted);
-      font-size: 0.72rem;
-      margin-top: 2px;
-    }
-    .presets button:hover {
-      border-color: var(--ink);
-      transform: translateY(-1px);
-    }
-    .presets button.on {
-      background: var(--blue);
-      border-color: var(--blue-ink);
-      color: var(--blue-ink);
-      font-weight: 600;
-    }
-    .presets button.on small {
-      color: var(--blue-ink);
-    }
-
-    /* CUSTOM INPUT */
-    .custom-input-box {
-      margin-top: 10px;
+    .field {
       display: flex;
-      gap: 8px;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .field label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      letter-spacing: 0.02em;
+    }
+    .select-wrap {
+      position: relative;
+      display: flex;
       align-items: center;
     }
-    .custom-input-box input {
+    select.control {
+      width: 100%;
+      height: 36px;
+      padding: 6px 28px 6px 10px;
+      font: inherit;
+      font-size: 0.84rem;
+      color: var(--ink);
+      background-color: var(--card);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+      background-size: 11px;
+      transition: border-color var(--trans), box-shadow var(--trans);
+    }
+    select.control:hover {
+      border-color: var(--accent);
+    }
+    select.control:focus-visible {
+      outline: none;
+      border-color: var(--focus-ring);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.14);
+    }
+
+    /* CUSTOM INPUT SECTION */
+    .custom-box {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: var(--subtle);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .custom-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+    .custom-input-row input {
       flex: 1;
+      min-width: 240px;
       font-family: var(--mono);
       font-size: 0.85rem;
-      padding: 8px 12px;
-      border: 1px solid var(--line2);
-      border-radius: 6px;
+      padding: 7px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
       background: #FFFFFF;
       color: var(--ink);
     }
-    .custom-input-box input:focus {
+    .custom-input-row input:focus-visible {
       outline: none;
-      border-color: var(--ink);
-      box-shadow: 0 0 0 2px rgba(38,49,45,0.08);
+      border-color: var(--focus-ring);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+    .custom-help {
+      font-size: 0.74rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .input-error {
+      font-size: 0.76rem;
+      font-family: var(--mono);
+      color: var(--miss-text);
+      background: var(--miss-bg);
+      border: 1px solid var(--miss-line);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
     }
 
-    /* RUN CONTROLS */
+    /* RUN CONTROLS TOOLBAR */
     .run-bar {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
       align-items: center;
     }
     .btn {
-      padding: 8px 18px;
-      border-radius: 6px;
-      border: 1px solid var(--ink);
-      background: var(--ink);
+      padding: 7px 16px;
+      height: 36px;
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      background: var(--accent);
       color: #FFFFFF;
       font: inherit;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.15s, background var(--trans);
+      transition: background var(--trans), border-color var(--trans), transform var(--trans);
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      user-select: none;
     }
     .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      background: #3B4B45;
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
     }
     .btn.alt {
       background: var(--card);
       color: var(--ink);
-      border-color: var(--line2);
+      border-color: var(--line-strong);
     }
     .btn.alt:hover:not(:disabled) {
-      background: var(--soft);
-      border-color: var(--ink);
+      background: var(--subtle);
+      border-color: var(--accent);
     }
     .btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
       transform: none;
     }
-    .run-bar .seg {
+    .speed-wrapper {
       margin-left: auto;
-      min-width: 160px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .speed-wrapper label {
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-weight: 600;
     }
 
     /* TRACE CHIPS */
     .chips {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 7px;
     }
     .chip {
       font-family: var(--mono);
       font-size: 0.82rem;
-      padding: 5px 10px;
-      border: 1px solid var(--line2);
-      border-radius: 6px;
-      background: var(--soft);
-      transition: all 0.25s;
-      min-width: 34px;
+      padding: 4px 9px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--subtle);
+      color: var(--ink-secondary);
+      transition: all 0.2s;
+      min-width: 32px;
       text-align: center;
     }
     .chip.hit {
       background: var(--hit-bg);
       border-color: var(--hit-line);
-      color: var(--hit);
-      font-weight: 700;
+      color: var(--hit-text);
+      font-weight: 600;
     }
     .chip.miss {
       background: var(--miss-bg);
       border-color: var(--miss-line);
-      color: var(--miss);
-      font-weight: 700;
+      color: var(--miss-text);
+      font-weight: 600;
     }
     .chip.now {
-      animation: pop 0.35s ease;
-      box-shadow: 0 0 0 2px var(--ink);
-      border-color: var(--ink);
-    }
-    @keyframes pop {
-      0% { transform: scale(0.9); }
-      50% { transform: scale(1.12); }
-      100% { transform: scale(1); }
+      box-shadow: 0 0 0 2px var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-1px);
     }
 
-    /* TRANSLATION FLOW */
+    /* ADDRESS TRANSLATION FLOW */
     .flow {
-      display: grid;
-      grid-template-columns: 1fr auto 1.25fr auto 1fr;
-      gap: 8px;
+      display: flex;
       align-items: center;
-      text-align: center;
-    }
-    @media (max-width: 580px) {
-      .flow {
-        grid-template-columns: 1fr;
-      }
-      .arrow {
-        transform: rotate(90deg);
-      }
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
     .node {
-      border: 1px solid var(--line2);
-      border-radius: 6px;
-      padding: 10px 6px;
+      flex: 1;
+      min-width: 125px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
       background: var(--card);
-      transition: all 0.3s;
+      font-size: 0.78rem;
+      transition: border-color var(--trans), background var(--trans);
     }
     .node b {
       display: block;
-      font-size: 0.82rem;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
       margin-bottom: 2px;
     }
     .node span {
       font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-    .node.lit {
-      animation: pop 0.35s ease;
-    }
-    .node.hit {
-      background: var(--hit-bg);
-      border-color: var(--hit);
-      color: var(--hit);
-    }
-    .node.miss {
-      background: var(--miss-bg);
-      border-color: var(--miss);
-      color: var(--miss);
-    }
-    .node.hit span, .node.miss span {
-      color: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ink);
     }
     .arrow {
       color: var(--muted);
-      font-size: 1.1rem;
+      font-size: 1rem;
+      user-select: none;
+    }
+    .node.lit.hit {
+      border-color: var(--hit-line);
+      background: var(--hit-bg);
+    }
+    .node.lit.hit span {
+      color: var(--hit-text);
+    }
+    .node.lit.miss {
+      border-color: var(--miss-line);
+      background: var(--miss-bg);
+    }
+    .node.lit.miss span {
+      color: var(--miss-text);
     }
 
-    /* BIT STRIP */
+    /* BIT FIELD SPLIT */
     .bits {
       display: flex;
-      height: 28px;
-      margin: 12px 0 4px;
-      border-radius: 6px;
+      height: 24px;
+      border-radius: var(--radius-sm);
       overflow: hidden;
-      border: 1px solid var(--line2);
-      font: 600 0.74rem var(--mono);
-    }
-    .bits div {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: width 0.35s;
+      font: 0.7rem/24px var(--mono);
+      text-align: center;
+      color: #FFFFFF;
+      margin-bottom: 6px;
     }
     .bits .v {
-      background: var(--blue);
-      color: var(--blue-ink);
+      background: #3B82F6;
+      transition: width 0.3s;
     }
     .bits .o {
-      background: var(--peach);
-      color: var(--peach-ink);
+      background: #64748B;
+      transition: width 0.3s;
+    }
+    .bits-info {
+      font: 0.74rem var(--mono);
+      color: var(--muted);
+      margin-top: 3px;
     }
 
+    /* BANNER */
     .banner {
-      margin-top: 10px;
+      margin-top: 12px;
       padding: 9px 12px;
-      border-radius: 6px;
-      background: var(--soft);
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      background: var(--subtle);
       border: 1px solid var(--line);
-      font-size: 0.84rem;
-      transition: all 0.3s;
-      font-family: var(--mono);
+      color: var(--ink-secondary);
+      line-height: 1.45;
     }
     .banner.hit {
       background: var(--hit-bg);
       border-color: var(--hit-line);
-      color: var(--hit);
+      color: var(--hit-text);
     }
     .banner.miss {
       background: var(--miss-bg);
       border-color: var(--miss-line);
-      color: var(--miss);
+      color: var(--miss-text);
     }
 
-    /* OUTPUT / STATISTICS */
+    /* STATS GRID */
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -428,25 +440,29 @@
       margin-bottom: 10px;
     }
     .stat {
-      background: var(--soft);
+      background: var(--subtle);
       border: 1px solid var(--line);
-      border-radius: 6px;
+      border-radius: var(--radius);
       padding: 8px 10px;
+      text-align: center;
     }
     .stat small {
       display: block;
       font-size: 0.68rem;
       text-transform: uppercase;
+      letter-spacing: 0.05em;
       color: var(--muted);
-      letter-spacing: 0.04em;
+      margin-bottom: 2px;
     }
     .stat strong {
-      font: 700 1.25rem var(--mono);
-      line-height: 1.2;
+      font-family: var(--mono);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--ink);
     }
     .bar {
       height: 8px;
-      background: var(--line);
+      background: var(--subtle);
       border-radius: 4px;
       overflow: hidden;
       display: flex;
@@ -455,22 +471,22 @@
     .bar i {
       display: block;
       height: 100%;
-      transition: width 0.4s;
+      transition: width 0.3s ease;
     }
     .bar .h {
-      background: var(--hit);
+      background: var(--hit-bar);
     }
     .bar .m {
-      background: var(--miss);
+      background: var(--miss-bar);
     }
     .eat-box {
       font-size: 0.76rem;
       font-family: var(--mono);
-      color: var(--muted);
-      line-height: 1.45;
-      background: var(--soft);
-      padding: 8px 10px;
-      border-radius: 6px;
+      color: var(--ink-secondary);
+      line-height: 1.5;
+      background: var(--subtle);
+      padding: 9px 11px;
+      border-radius: var(--radius);
       border: 1px solid var(--line);
     }
 
@@ -485,39 +501,41 @@
       padding: 7px 8px;
       font-size: 0.68rem;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
       color: var(--muted);
-      background: var(--soft);
+      background: var(--subtle);
       border-bottom: 1px solid var(--line);
     }
     td {
       padding: 6px 8px;
       border-bottom: 1px solid var(--line);
+      color: var(--ink);
     }
     tr.flash-hit td {
       background: var(--hit-bg);
-      color: var(--hit);
-      font-weight: 700;
+      color: var(--hit-text);
+      font-weight: 600;
     }
     tr.flash-new td {
-      background: var(--blue);
-      color: var(--blue-ink);
-      font-weight: 700;
+      background: var(--info-bg);
+      color: var(--info-text);
+      font-weight: 600;
     }
     .tag {
       display: inline-block;
       padding: 1px 6px;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       font-size: 0.68rem;
       font-weight: 700;
     }
     .tag.hit {
       background: var(--hit-bg);
-      color: var(--hit);
+      color: var(--hit-text);
       border: 1px solid var(--hit-line);
     }
     .tag.miss {
       background: var(--miss-bg);
-      color: var(--miss);
+      color: var(--miss-text);
       border: 1px solid var(--miss-line);
     }
     .logbox {
@@ -533,11 +551,11 @@
       font-family: inherit;
     }
 
-    /* VISUALIZATION CHARTS (SLA-2 Fig 1-4) */
+    /* VISUALIZATION CHARTS */
     .chart-grid {
       display: grid;
       grid-template-columns: 240px 1fr;
-      gap: 16px;
+      gap: 14px;
       align-items: center;
     }
     @media (max-width: 680px) {
@@ -546,9 +564,9 @@
       }
     }
     .chart-panel {
-      background: var(--soft);
+      background: var(--subtle);
       border: 1px solid var(--line);
-      border-radius: 6px;
+      border-radius: var(--radius);
       padding: 10px 12px;
       height: 180px;
       display: flex;
@@ -569,11 +587,36 @@
       overflow: visible;
     }
 
+    /* CONCEPT NOTES / EXPLANATION ACCORDIONS */
+    .concept-box {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .concept-card {
+      padding: 10px 12px;
+      background: var(--subtle);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      color: var(--ink-secondary);
+    }
+    .concept-card h3 {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
     /* FOOTER */
     footer {
       border-top: 1px solid var(--line);
       background: var(--card);
-      padding: 22px 0 28px;
+      padding: 20px 0 24px;
       margin-top: auto;
       font-size: 0.8rem;
       color: var(--muted);
@@ -621,37 +664,93 @@
     </div>
   </header>
 
-  <main class="wrap" style="padding-top: 18px; padding-bottom: 24px;">
+  <main class="wrap" style="padding-top: 16px; padding-bottom: 24px;">
 
-    <!-- SECTION 1: ARCHITECTURE & WORKLOAD CONFIGURATION -->
+    <!-- SECTION 1: ARCHITECTURE SETUP & WORKLOAD CONFIGURATION -->
     <section class="card">
-      <h2>1 &middot; Architecture Setup</h2>
-      <div class="opts">
-        <div class="opt">
-          <label>TLB Size (entries)</label>
-          <div class="seg" id="g-cap"></div>
+      <h2>1 &middot; Architecture &amp; Hardware Parameters</h2>
+      <div class="settings-grid">
+        <div class="field">
+          <label for="sel-cap">TLB Capacity (Entries)</label>
+          <div class="select-wrap">
+            <select id="sel-cap" class="control">
+              <option value="2">2 entries</option>
+              <option value="3" selected>3 entries (Standard)</option>
+              <option value="4">4 entries</option>
+              <option value="8">8 entries</option>
+            </select>
+          </div>
         </div>
-        <div class="opt">
-          <label>Replacement Policy</label>
-          <div class="seg" id="g-policy"></div>
+
+        <div class="field">
+          <label for="sel-policy">Replacement Policy</label>
+          <div class="select-wrap">
+            <select id="sel-policy" class="control">
+              <option value="FIFO" selected>FIFO (First-In, First-Out)</option>
+              <option value="LRU">LRU (Least Recently Used)</option>
+            </select>
+          </div>
         </div>
-        <div class="opt">
-          <label>Page Size</label>
-          <div class="seg" id="g-page"></div>
+
+        <div class="field">
+          <label for="sel-page">Page Size</label>
+          <div class="select-wrap">
+            <select id="sel-page" class="control">
+              <option value="256">256 B (8-bit offset)</option>
+              <option value="512">512 B (9-bit offset)</option>
+              <option value="1024" selected>1 KB / 1024 B (10-bit offset)</option>
+            </select>
+          </div>
         </div>
-        <div class="opt">
-          <label>Hardware Latency</label>
-          <div class="seg" id="g-timing"></div>
+
+        <div class="field">
+          <label for="sel-timing">Hardware Latency</label>
+          <div class="select-wrap">
+            <select id="sel-timing" class="control">
+              <option value="std" selected>Standard (TLB 10 ns, Memory 100 ns)</option>
+              <option value="fast">Fast (TLB 5 ns, Memory 50 ns)</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <h2 style="margin-top: 16px;">2 &middot; Workload Reference Sequence</h2>
-      <div class="presets" id="g-work"></div>
+      <h2 style="margin-top: 18px;">2 &middot; Workload Reference Sequence</h2>
+      <div class="settings-grid">
+        <div class="field" style="grid-column: span 2;">
+          <label for="sel-work">Workload Preset</label>
+          <div class="select-wrap">
+            <select id="sel-work" class="control">
+              <option value="standard" selected>Standard Reference Benchmark (1, 2, 3, 1, 2, 4, 1, 2, 5, 1)</option>
+              <option value="repeated">Repeated Pages (High Temporal Locality)</option>
+              <option value="sequential">Sequential Access (High Spatial Locality)</option>
+              <option value="thrash">Capacity Thrashing (Exceeds Capacity)</option>
+              <option value="diverge">FIFO vs LRU Contrast (Page Re-reference)</option>
+              <option value="custom">Custom Reference Sequence...</option>
+            </select>
+          </div>
+        </div>
 
-      <!-- Custom Reference Input -->
-      <div class="custom-input-box">
-        <input type="text" id="custom-trace-input" placeholder="Or enter custom page numbers or addresses (e.g. 1, 2, 3, 1, 2, 4, 1, 2, 5, 1 or 3000, 1024)" spellcheck="false">
-        <button type="button" class="btn alt" id="btn-apply-custom" style="padding: 8px 14px;">Apply</button>
+        <div class="field">
+          <label for="sel-input-mode">Reference Interpretation Mode</label>
+          <div class="select-wrap">
+            <select id="sel-input-mode" class="control">
+              <option value="page" selected>Virtual Page Numbers (VPN)</option>
+              <option value="va">16-bit Virtual Addresses (0 &ndash; 65535)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Reference Input (Revealed on 'custom' or toggled) -->
+      <div class="custom-box" id="custom-box" style="display: none;">
+        <div class="custom-input-row">
+          <input type="text" id="custom-trace-input" placeholder="e.g. 1, 2, 3, 1, 2, 4, 1, 2, 5, 1 or 3000, 1024, 4096" spellcheck="false" autocomplete="off">
+          <button type="button" class="btn" id="btn-apply-custom">Apply Sequence</button>
+        </div>
+        <div class="custom-help">
+          Enter comma-separated integers. <strong>Page Number mode:</strong> direct VPN values (&ge; 0). <strong>Virtual Address mode:</strong> 16-bit addresses (0 to 65535) decomposed into VPN = &lfloor;VA / PageSize&rfloor; and Offset = VA % PageSize.
+        </div>
+        <div id="custom-input-error" class="input-error" style="display: none;" role="alert"></div>
       </div>
 
       <!-- Controls Toolbar -->
@@ -659,15 +758,25 @@
         <button type="button" class="btn" id="b-step">Step &#9656;</button>
         <button type="button" class="btn alt" id="b-play">Play</button>
         <button type="button" class="btn alt" id="b-reset">Reset</button>
-        <div class="seg" id="g-speed"></div>
+
+        <div class="speed-wrapper">
+          <label for="sel-speed">Speed:</label>
+          <div class="select-wrap" style="width: 130px;">
+            <select id="sel-speed" class="control" style="height: 32px; padding-top: 4px; padding-bottom: 4px; font-size: 0.8rem;">
+              <option value="1300">Slow (1.3s)</option>
+              <option value="800" selected>Normal (0.8s)</option>
+              <option value="350">Fast (0.35s)</option>
+            </select>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- SECTION 2: REFERENCE STRING CHIPS -->
+    <!-- SECTION 2: REFERENCE STRING PROGRESS -->
     <section class="card">
       <h2>
-        <span>Reference String Progress</span>
-        <span id="trace-progress-badge" style="font-family:var(--mono); text-transform:none; font-size:0.75rem;">0 / 10 processed</span>
+        <span>Reference Sequence Progress</span>
+        <span id="trace-progress-badge" style="font-family:var(--mono); text-transform:none; font-size:0.75rem; font-weight:600;">0 / 10 processed</span>
       </h2>
       <div class="chips" id="chips"></div>
     </section>
@@ -679,7 +788,7 @@
         <h2>Address Translation Flow</h2>
         <div class="flow">
           <div class="node" id="n-va">
-            <b>Virtual Address</b>
+            <b>Virtual Address / Ref</b>
             <span id="t-va">--</span>
           </div>
           <div class="arrow">&rarr;</div>
@@ -699,11 +808,11 @@
           <div class="o" id="bit-o">Offset &middot; 10 bits</div>
         </div>
 
-        <div style="font: 0.75rem var(--mono); color: var(--muted); margin-top: 4px;" id="split">
+        <div class="bits-info" id="split">
           16-bit address: VPN [15:10] | Offset [9:0] (Page Size: 1024 B)
         </div>
 
-        <div class="banner" id="banner">Ready. Press Step or Play to begin.</div>
+        <div class="banner" id="banner">Ready. Press Step or Play to begin simulation.</div>
       </div>
 
       <!-- Right: Output / Statistics -->
@@ -712,14 +821,14 @@
         <div class="stats">
           <div class="stat">
             <small>TLB Hits</small>
-            <strong id="s-h" style="color:var(--hit)">0</strong>
+            <strong id="s-h" style="color:var(--hit-text)">0</strong>
           </div>
           <div class="stat">
             <small>TLB Misses</small>
-            <strong id="s-m" style="color:var(--miss)">0</strong>
+            <strong id="s-m" style="color:var(--miss-text)">0</strong>
           </div>
           <div class="stat">
-            <small>Effective Time</small>
+            <small>Effective Time (EAT)</small>
             <strong id="s-e">--</strong>
           </div>
         </div>
@@ -751,9 +860,9 @@
       </div>
     </section>
 
-    <!-- SECTION 4: VISUALIZATION (CHARTS FROM SLA-2 REPORT FIG 1-4) -->
+    <!-- SECTION 4: VISUALIZATION (CHARTS) -->
     <section class="card">
-      <h2>Visual Analysis (Hit / Miss Count &amp; Running Hit-Ratio Graph)</h2>
+      <h2>Visual Analysis (Hit / Miss Histogram &amp; Running Trajectory)</h2>
       <div class="chart-grid">
         <!-- Chart A: Bar Chart -->
         <div class="chart-panel">
@@ -784,11 +893,11 @@
         <table>
           <thead>
             <tr>
-              <th>Index</th>
+              <th>Slot</th>
               <th>Page No. (VPN)</th>
               <th>Frame No. (PFN)</th>
               <th>Valid</th>
-              <th id="th-order">Order</th>
+              <th id="th-order">Loaded At</th>
             </tr>
           </thead>
           <tbody id="tlb">
@@ -816,10 +925,30 @@
             </thead>
             <tbody id="log">
               <tr>
-                <td colspan="8" class="empty">No references executed yet.</td>
+                <td colspan="8" class="empty">No references executed yet. Click Step or Play.</td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: EDUCATIONAL CONCEPTS & THEORY -->
+    <section class="card">
+      <h2>Educational Notes &amp; Viva Insights</h2>
+      <div class="concept-box">
+        <div class="concept-card">
+          <h3>TLB Hit vs. TLB Miss</h3>
+          A <strong>TLB Hit</strong> translates the address in cache lookup time ($T$). A <strong>TLB Miss</strong> incurs a main-memory page-table walk ($M$) to fetch the frame number, stores it in the TLB for temporal/spatial locality, and accesses the data ($M$), totaling $T + 2M$.
+        </div>
+        <div class="concept-card">
+          <h3>Effective Access Time (EAT)</h3>
+          $$EAT = H \times (T + M) + (1 - H) \times (T + 2M)$$
+          Where $H$ is hit ratio, $T$ is TLB lookup latency (e.g. 10 ns), and $M$ is main memory latency (e.g. 100 ns). A baseline system without TLB always requires 2 memory accesses ($2M = 200\text{ ns}$).
+        </div>
+        <div class="concept-card">
+          <h3>FIFO vs. LRU Eviction</h3>
+          <strong>FIFO</strong> evicts the slot with the earliest insertion timestamp regardless of recent accesses. <strong>LRU</strong> updates the access timestamp on every hit and evicts the least recently referenced entry, preserving active working sets.
         </div>
       </div>
     </section>
@@ -853,7 +982,7 @@
 
       /* ------------------------------------------------------------------------
          1. FIXED ARCHITECTURAL ASSUMPTIONS & REPORT MAPPINGS
-         Matches SLA-2 Report Section 5 (Page 4):
+         Standard verified mappings:
          Page 1 -> Frame 5 | Page 2 -> Frame 7 | Page 3 -> Frame 2 | Page 4 -> Frame 9 | Page 5 -> Frame 4
          ------------------------------------------------------------------------ */
       const FIXED_PFN_MAP = {
@@ -876,17 +1005,17 @@
       }
 
       /* ------------------------------------------------------------------------
-         2. PRESET DEFINITIONS (MATCHING SLA REPORT & GUI BENCHMARKS)
+         2. PRESET DEFINITIONS
          ------------------------------------------------------------------------ */
       const WORK = {
-        sakec: {
-          name: 'SLA-2 Report Benchmark',
+        standard: {
+          name: 'Standard Reference Benchmark',
           note: '1, 2, 3, 1, 2, 4, 1, 2, 5, 1 (FIFO=0.30, LRU=0.50)',
           cap: 3,
           page: 1024,
           policy: 'FIFO',
           refs: [1, 2, 3, 1, 2, 4, 1, 2, 5, 1],
-          isVirtualAddr: false
+          inputMode: 'page'
         },
         repeated: {
           name: 'Repeated Pages',
@@ -895,7 +1024,7 @@
           page: 256,
           policy: 'LRU',
           refs: [64, 128, 288, 68, 304, 136, 528, 72],
-          isVirtualAddr: true
+          inputMode: 'va'
         },
         sequential: {
           name: 'Sequential Access',
@@ -904,7 +1033,7 @@
           page: 256,
           policy: 'FIFO',
           refs: [100, 104, 108, 112, 116, 250, 260, 270, 280, 510, 520],
-          isVirtualAddr: true
+          inputMode: 'va'
         },
         thrash: {
           name: 'Capacity Thrashing',
@@ -913,7 +1042,7 @@
           page: 256,
           policy: 'FIFO',
           refs: [16, 272, 528, 784, 32, 288],
-          isVirtualAddr: true
+          inputMode: 'va'
         },
         diverge: {
           name: 'FIFO vs LRU Contrast',
@@ -922,7 +1051,7 @@
           page: 256,
           policy: 'FIFO',
           refs: [256, 512, 768, 288, 1024, 320],
-          isVirtualAddr: true
+          inputMode: 'va'
         }
       };
 
@@ -933,13 +1062,14 @@
         cap: 3,
         policy: 'FIFO',
         page: 1024,
+        timingMode: 'std',
         tlbTime: 10,  // T (ns)
         memTime: 100, // M (ns)
-        work: 'sakec',
+        work: 'standard',
         speed: 800,
+        inputMode: 'page', // 'page' or 'va'
         
-        refs: [],
-        isVirtualAddr: false,
+        refs: [1, 2, 3, 1, 2, 4, 1, 2, 5, 1],
         i: 0,
         hits: 0,
         misses: 0,
@@ -953,65 +1083,99 @@
       const $ = id => document.getElementById(id);
 
       /* ------------------------------------------------------------------------
-         4. TOGGLE BUTTONS BUILDER
+         4. CONTROL SYNCHRONIZATION
          ------------------------------------------------------------------------ */
-      function seg(id, items, key, onPick) {
-        const box = $(id);
-        box.innerHTML = '';
-        items.forEach(([val, label]) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.textContent = label;
-          b.className = S[key] === val ? 'on' : '';
-          b.onclick = () => {
-            S[key] = val;
-            onPick && onPick();
-            sync();
-          };
-          box.appendChild(b);
-        });
+      function syncDropdowns() {
+        $('sel-cap').value = String(S.cap);
+        $('sel-policy').value = S.policy;
+        $('sel-page').value = String(S.page);
+        $('sel-timing').value = S.timingMode;
+        $('sel-work').value = S.work;
+        $('sel-input-mode').value = S.inputMode;
+        $('sel-speed').value = String(S.speed);
+
+        // Show/hide custom input row
+        const customBox = $('custom-box');
+        if (S.work === 'custom') {
+          customBox.style.display = 'flex';
+        } else {
+          customBox.style.display = 'none';
+        }
+        $('custom-trace-input').value = S.refs.join(', ');
       }
 
-      function buildControls() {
-        seg('g-cap', [[2, '2'], [3, '3'], [4, '4'], [8, '8']], 'cap', reset);
-        seg('g-policy', [['FIFO', 'FIFO'], ['LRU', 'LRU']], 'policy', reset);
-        seg('g-page', [[256, '256 B'], [512, '512 B'], [1024, '1 KB']], 'page', reset);
-        seg('g-timing', [['std', '10ns / 100ns'], ['fast', '5ns / 50ns']], 'timingMode', () => {
+      function setupDropdownListeners() {
+        // 1. Capacity
+        $('sel-cap').addEventListener('change', (e) => {
+          S.cap = parseInt(e.target.value, 10);
+          reset();
+        });
+
+        // 2. Policy
+        $('sel-policy').addEventListener('change', (e) => {
+          S.policy = e.target.value;
+          reset();
+        });
+
+        // 3. Page Size
+        $('sel-page').addEventListener('change', (e) => {
+          S.page = parseInt(e.target.value, 10);
+          reset();
+        });
+
+        // 4. Hardware Latency
+        $('sel-timing').addEventListener('change', (e) => {
+          S.timingMode = e.target.value;
           if (S.timingMode === 'fast') {
-            S.tlbTime = 5; S.memTime = 50;
+            S.tlbTime = 5;
+            S.memTime = 50;
           } else {
-            S.tlbTime = 10; S.memTime = 100;
+            S.tlbTime = 10;
+            S.memTime = 100;
           }
           drawStats();
         });
-        seg('g-speed', [[1300, 'Slow'], [800, 'Normal'], [350, 'Fast']], 'speed', () => {
-          if (S.timer) { stop(); play(); }
+
+        // 5. Workload Preset
+        $('sel-work').addEventListener('change', (e) => {
+          const val = e.target.value;
+          S.work = val;
+          hideCustomError();
+          
+          if (val === 'custom') {
+            $('custom-box').style.display = 'flex';
+            $('custom-trace-input').focus();
+          } else {
+            $('custom-box').style.display = 'none';
+            const preset = WORK[val];
+            if (preset) {
+              S.cap = preset.cap;
+              S.page = preset.page;
+              S.policy = preset.policy;
+              S.refs = [...preset.refs];
+              S.inputMode = preset.inputMode;
+              syncDropdowns();
+              reset();
+            }
+          }
         });
 
-        // Presets
-        const w = $('g-work');
-        w.innerHTML = '';
-        Object.entries(WORK).forEach(([k, v]) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = S.work === k ? 'on' : '';
-          b.innerHTML = `${v.name}<small>${v.note}</small>`;
-          b.onclick = () => {
-            S.work = k;
-            S.cap = v.cap;
-            S.page = v.page;
-            S.policy = v.policy;
-            S.refs = [...v.refs];
-            S.isVirtualAddr = v.isVirtualAddr;
-            $('custom-trace-input').value = S.refs.join(', ');
-            reset();
-            sync();
-          };
-          w.appendChild(b);
+        // 6. Input Mode
+        $('sel-input-mode').addEventListener('change', (e) => {
+          S.inputMode = e.target.value;
+          hideCustomError();
+          reset();
+        });
+
+        // 7. Playback Speed
+        $('sel-speed').addEventListener('change', (e) => {
+          S.speed = parseInt(e.target.value, 10);
+          if (S.timer) {
+            stop();
+            play();
+          }
         });
       }
-
-      const sync = buildControls;
 
       /* ------------------------------------------------------------------------
          5. RESET & INITIALIZATION
@@ -1026,8 +1190,9 @@
         S.stepResults = [];
 
         if (!S.refs || S.refs.length === 0) {
-          S.refs = [...WORK[S.work].refs];
-          S.isVirtualAddr = WORK[S.work].isVirtualAddr;
+          const fallback = WORK[S.work] || WORK.standard;
+          S.refs = [...fallback.refs];
+          S.inputMode = fallback.inputMode;
         }
 
         S.tlb = Array.from({ length: S.cap }, (_, idx) => ({
@@ -1067,12 +1232,12 @@
         const refVal = S.refs[stepNum - 1];
         
         let vpn, off, vaDisplay;
-        if (S.isVirtualAddr) {
+        if (S.inputMode === 'va') {
           vpn = Math.floor(refVal / S.page);
           off = refVal % S.page;
           vaDisplay = refVal;
         } else {
-          // Direct Page Reference Number (SLA-2 benchmark mode)
+          // Direct Page Reference Number mode
           vpn = refVal;
           off = 0;
           vaDisplay = `Page ${vpn}`;
@@ -1102,7 +1267,7 @@
         } else {
           // --- TLB MISS ---
           S.misses++;
-          S.ptAccesses++; // Page table access counter
+          S.ptAccesses++; // Page table access counter (1 miss = 1 PT lookup)
           pfn = getPFN(vpn);
 
           // Find free slot or evict
@@ -1167,7 +1332,7 @@
         $('banner').className = 'banner ' + res;
         $('banner').innerHTML = hit
           ? `<strong>TLB HIT:</strong> Page ${vpn} found in Slot #${slot}. Physical Address = ${pa} (PFN ${pfn} &times; ${S.page} + ${off}).`
-          : `<strong>TLB MISS:</strong> Page ${vpn} absent. Page Table queried &rarr; PFN ${pfn}. Saved into Slot #${slot}.`;
+          : `<strong>TLB MISS:</strong> Page ${vpn} absent. Page Table queried &rarr; PFN ${pfn}. Loaded into Slot #${slot}.`;
 
         addLog(stepNum, vaDisplay, vpn, off, res, pfn, pa, eventDesc);
         drawChips();
@@ -1200,7 +1365,7 @@
         nodes.forEach((n, k) => {
           setTimeout(() => {
             $(n).className = 'node lit ' + cls[k];
-          }, k * 200);
+          }, k * 140);
         });
       }
 
@@ -1291,6 +1456,8 @@
         const h = S.hits / tot;
         const mr = S.misses / tot;
         const eat = h * (S.tlbTime + S.memTime) + (1 - h) * (S.tlbTime + 2 * S.memTime);
+        const baseline = 2 * S.memTime;
+        const speedup = ((baseline - eat) / baseline) * 100;
 
         $('s-hr').textContent = h.toFixed(2);
         $('s-mr').textContent = mr.toFixed(2);
@@ -1302,6 +1469,7 @@
         $('eat-txt').innerHTML = `
           H = ${h.toFixed(2)}, Miss = ${mr.toFixed(2)} &middot; 
           EAT = ${h.toFixed(2)}&times;(${S.tlbTime}+${S.memTime}) + ${mr.toFixed(2)}&times;(${S.tlbTime}+${2*S.memTime}) = <strong>${eat.toFixed(1)} ns</strong>
+          <span style="display:block; margin-top:3px; color:var(--muted)">Baseline without TLB = ${baseline} ns (${speedup >= 0 ? speedup.toFixed(1) + '% faster' : Math.abs(speedup).toFixed(1) + '% overhead'}).</span>
         `;
       }
 
@@ -1338,7 +1506,7 @@
       }
 
       /* ------------------------------------------------------------------------
-         10. DUAL-CHART VISUALIZATION (MATCHING SLA-2 FIGURES 1-4)
+         10. DUAL-CHART VISUALIZATION
          ------------------------------------------------------------------------ */
       function drawCharts() {
         // --- CHART A: HIT / MISS BAR CHART ---
@@ -1349,23 +1517,23 @@
 
         svgBars.innerHTML = `
           <!-- Y Axis Grid -->
-          <line x1="30" y1="15" x2="190" y2="15" stroke="var(--line2)" stroke-dasharray="2,2"/>
-          <line x1="30" y1="60" x2="190" y2="60" stroke="var(--line2)" stroke-dasharray="2,2"/>
-          <line x1="30" y1="105" x2="190" y2="105" stroke="var(--line2)"/>
+          <line x1="30" y1="15" x2="190" y2="15" stroke="var(--line)" stroke-dasharray="2,2"/>
+          <line x1="30" y1="60" x2="190" y2="60" stroke="var(--line)" stroke-dasharray="2,2"/>
+          <line x1="30" y1="105" x2="190" y2="105" stroke="var(--line)"/>
           
           <text x="24" y="19" font-size="8" text-anchor="end" fill="var(--muted)" font-family="var(--mono)">${maxVal}</text>
           <text x="24" y="64" font-size="8" text-anchor="end" fill="var(--muted)" font-family="var(--mono)">${Math.round(maxVal/2)}</text>
           <text x="24" y="108" font-size="8" text-anchor="end" fill="var(--muted)" font-family="var(--mono)">0</text>
 
           <!-- Hit Bar -->
-          <rect x="52" y="${105 - hitH}" width="42" height="${hitH}" fill="var(--hit)" rx="3"/>
-          <text x="73" y="${Math.max(12, 100 - hitH)}" font-size="10" font-weight="700" text-anchor="middle" fill="var(--hit)" font-family="var(--mono)">${S.hits}</text>
-          <text x="73" y="122" font-size="9" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">TLB Hits</text>
+          <rect x="52" y="${105 - hitH}" width="42" height="${hitH}" fill="var(--hit-bar)" rx="2"/>
+          <text x="73" y="${Math.max(12, 100 - hitH)}" font-size="10" font-weight="700" text-anchor="middle" fill="var(--hit-text)" font-family="var(--mono)">${S.hits}</text>
+          <text x="73" y="122" font-size="9" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">Hits</text>
 
           <!-- Miss Bar -->
-          <rect x="122" y="${105 - missH}" width="42" height="${missH}" fill="var(--miss)" rx="3"/>
-          <text x="143" y="${Math.max(12, 100 - missH)}" font-size="10" font-weight="700" text-anchor="middle" fill="var(--miss)" font-family="var(--mono)">${S.misses}</text>
-          <text x="143" y="122" font-size="9" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">TLB Misses</text>
+          <rect x="122" y="${105 - missH}" width="42" height="${missH}" fill="var(--miss-bar)" rx="2"/>
+          <text x="143" y="${Math.max(12, 100 - missH)}" font-size="10" font-weight="700" text-anchor="middle" fill="var(--miss-text)" font-family="var(--mono)">${S.misses}</text>
+          <text x="143" y="122" font-size="9" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">Misses</text>
         `;
 
         // --- CHART B: RUNNING HIT RATIO LINE GRAPH ---
@@ -1382,7 +1550,7 @@
         [1.0, 0.8, 0.6, 0.4, 0.2, 0.0].forEach(val => {
           const y = topY + (1 - val) * plotH;
           gridLines += `
-            <line x1="${leftX}" y1="${y}" x2="${rightX}" y2="${y}" stroke="var(--line2)" stroke-dasharray="${val > 0 ? '2,2' : 'none'}"/>
+            <line x1="${leftX}" y1="${y}" x2="${rightX}" y2="${y}" stroke="var(--line)" stroke-dasharray="${val > 0 ? '2,2' : 'none'}"/>
             <text x="${leftX - 6}" y="${y + 3}" font-size="8" text-anchor="end" fill="var(--muted)" font-family="var(--mono)">${val.toFixed(1)}</text>
           `;
         });
@@ -1413,7 +1581,7 @@
             }
 
             pointsSvg += `
-              <circle cx="${x}" cy="${y}" r="3.5" fill="var(--hit)" stroke="#FFFFFF" stroke-width="1.5"/>
+              <circle cx="${x}" cy="${y}" r="3.5" fill="var(--hit-bar)" stroke="#FFFFFF" stroke-width="1.5"/>
             `;
           });
         }
@@ -1421,53 +1589,102 @@
         svgLine.innerHTML = `
           ${gridLines}
           ${xLabels}
-          <text x="${(leftX + rightX)/2}" y="126" font-size="8" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">Reference Sequence Number</text>
-          ${pathD ? `<path d="${pathD}" fill="none" stroke="var(--hit)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
+          <text x="${(leftX + rightX)/2}" y="126" font-size="8" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)">Reference Sequence Step</text>
+          ${pathD ? `<path d="${pathD}" fill="none" stroke="var(--hit-text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
           ${pointsSvg}
         `;
       }
 
       /* ------------------------------------------------------------------------
-         11. EVENT LISTENERS
+         11. CUSTOM INPUT VALIDATION & HANDLING
          ------------------------------------------------------------------------ */
-      function setupListeners() {
-        $('b-step').onclick = () => { stop(); step(); };
-        $('b-play').onclick = () => S.timer ? stop() : play();
-        $('b-reset').onclick = () => reset();
+      function showCustomError(msg) {
+        const errBox = $('custom-input-error');
+        errBox.textContent = msg;
+        errBox.style.display = 'block';
+      }
 
-        // Custom trace input
-        $('btn-apply-custom').onclick = applyCustomTrace;
-        $('custom-trace-input').onkeydown = e => {
-          if (e.key === 'Enter') applyCustomTrace();
-        };
+      function hideCustomError() {
+        const errBox = $('custom-input-error');
+        errBox.textContent = '';
+        errBox.style.display = 'none';
       }
 
       function applyCustomTrace() {
-        const val = $('custom-trace-input').value.trim();
-        if (!val) return;
-
-        const tokens = val.split(/[\s,;]+/).map(t => parseInt(t, 10)).filter(n => !isNaN(n) && n >= 0);
-        if (tokens.length === 0) {
-          alert('Please enter valid non-negative integer reference numbers.');
+        const raw = $('custom-trace-input').value.trim();
+        if (!raw) {
+          showCustomError('Reference sequence cannot be empty. Please enter comma-separated integers.');
           return;
         }
 
-        // Heuristic: If any token > 64, assume virtual addresses; otherwise page numbers
-        const maxVal = Math.max(...tokens);
-        S.isVirtualAddr = maxVal > 64;
-        S.refs = tokens;
-        S.work = 'custom';
+        // Split by commas or whitespace
+        const parts = raw.split(/[\s,;]+/).filter(Boolean);
+        if (parts.length === 0) {
+          showCustomError('No valid reference tokens found.');
+          return;
+        }
 
-        // Unset active preset button highlights
-        document.querySelectorAll('#g-work button').forEach(b => b.classList.remove('on'));
+        const parsed = [];
+        for (let idx = 0; idx < parts.length; idx++) {
+          const token = parts[idx];
+          if (!/^\d+$/.test(token)) {
+            showCustomError(`Invalid token "${token}" at position ${idx + 1}. All references must be non-negative integers without decimals.`);
+            return;
+          }
+          const num = parseInt(token, 10);
+          if (isNaN(num) || num < 0) {
+            showCustomError(`Invalid integer value at position ${idx + 1}.`);
+            return;
+          }
+          if (S.inputMode === 'va' && num > 65535) {
+            showCustomError(`Virtual address ${num} exceeds 16-bit range (0 to 65535). Please enter addresses within 0 &ndash; 65535.`);
+            return;
+          }
+          parsed.push(num);
+        }
+
+        hideCustomError();
+        S.refs = parsed;
+        S.work = 'custom';
+        $('sel-work').value = 'custom';
         reset();
       }
 
+      /* ------------------------------------------------------------------------
+         12. EVENT LISTENERS
+         ------------------------------------------------------------------------ */
+      function setupListeners() {
+        $('b-step').addEventListener('click', () => {
+          stop();
+          step();
+        });
+
+        $('b-play').addEventListener('click', () => {
+          if (S.timer) {
+            stop();
+          } else {
+            play();
+          }
+        });
+
+        $('b-reset').addEventListener('click', () => {
+          reset();
+        });
+
+        // Custom trace input
+        $('btn-apply-custom').addEventListener('click', applyCustomTrace);
+        $('custom-trace-input').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            applyCustomTrace();
+          }
+        });
+      }
+
       // Initialize
+      setupDropdownListeners();
       setupListeners();
-      buildControls();
-      $('custom-trace-input').value = WORK.sakec.refs.join(', ');
-      S.refs = [...WORK.sakec.refs];
+      syncDropdowns();
       reset();
 
     })();
