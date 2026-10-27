@@ -3,7 +3,7 @@
 > A clean, interactive educational simulator for Translation Lookaside Buffer (TLB) hit/miss analysis, address translation flow, and Effective Access Time (EAT).  
 > Developed for **Semester 3 Computer Engineering Operating Systems Coursework** at **Shah & Anchor Kutchhi Engineering College (SAKEC)**.
 
-🌐 **Live Web Application:** [https://jashjain-1.github.io/tlb-hit-miss-analyser/](https://jashjain-1.github.io/tlb-hit-miss-analyser/)
+ **Live Web Application:** [https://jashjain-1.github.io/tlb-hit-miss-analyser/](https://jashjain-1.github.io/tlb-hit-miss-analyser/)
 
 ---
 
