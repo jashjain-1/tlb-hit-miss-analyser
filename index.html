@@ -88,16 +88,6 @@
       gap: 10px;
       color: var(--ink);
     }
-    .badge-univ {
-      font-size: 0.72rem;
-      font-family: var(--mono);
-      background: var(--subtle);
-      border: 1px solid var(--line);
-      padding: 2px 8px;
-      border-radius: var(--radius-sm);
-      color: var(--muted);
-      font-weight: 500;
-    }
     header p {
       color: var(--muted);
       margin-top: 3px;
@@ -587,32 +577,7 @@
       overflow: visible;
     }
 
-    /* CONCEPT NOTES / EXPLANATION ACCORDIONS */
-    .concept-box {
-      margin-top: 10px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 12px;
-    }
-    .concept-card {
-      padding: 10px 12px;
-      background: var(--subtle);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      font-size: 0.8rem;
-      line-height: 1.45;
-      color: var(--ink-secondary);
-    }
-    .concept-card h3 {
-      font-size: 0.76rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 700;
-      color: var(--ink);
-      margin-bottom: 4px;
-    }
-
-    /* FOOTER */
+/* FOOTER */
     footer {
       border-top: 1px solid var(--line);
       background: var(--card);
@@ -652,7 +617,6 @@
         <div>
           <h1>
             TLB Hit / Miss Analyser
-            <span class="badge-univ">SAKEC &middot; OS Lab</span>
           </h1>
           <p>Interactive hardware cache simulation for Virtual Memory paging, address translation, and Effective Access Time (EAT).</p>
         </div>
@@ -929,26 +893,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 6: EDUCATIONAL CONCEPTS & THEORY -->
-    <section class="card">
-      <h2>Educational Notes &amp; Viva Insights</h2>
-      <div class="concept-box">
-        <div class="concept-card">
-          <h3>TLB Hit vs. TLB Miss</h3>
-          A <strong>TLB Hit</strong> translates the address in cache lookup time ($T$). A <strong>TLB Miss</strong> incurs a main-memory page-table walk ($M$) to fetch the frame number, stores it in the TLB for temporal/spatial locality, and accesses the data ($M$), totaling $T + 2M$.
-        </div>
-        <div class="concept-card">
-          <h3>Effective Access Time (EAT)</h3>
-          $$EAT = H \times (T + M) + (1 - H) \times (T + 2M)$$
-          Where $H$ is hit ratio, $T$ is TLB lookup latency (e.g. 10 ns), and $M$ is main memory latency (e.g. 100 ns). A baseline system without TLB always requires 2 memory accesses ($2M = 200\text{ ns}$).
-        </div>
-        <div class="concept-card">
-          <h3>FIFO vs. LRU Eviction</h3>
-          <strong>FIFO</strong> evicts the slot with the earliest insertion timestamp regardless of recent accesses. <strong>LRU</strong> updates the access timestamp on every hit and evicts the least recently referenced entry, preserving active working sets.
         </div>
       </div>
     </section>
